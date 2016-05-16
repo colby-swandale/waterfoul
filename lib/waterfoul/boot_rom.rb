@@ -1,6 +1,27 @@
-# special program that is stored internally on the device and is executed
-# when the device is first turned on
 module Waterfoul
+  # The bootrom is a special program that is stored internally on the device
+  # and is executed when the device is first turned on.
+  #
+  # The main purpose of the program is to bootstrap the device into a state
+  # that is ready to run the game program. Some of the notable tasks the
+  # program will perform are:
+  # - zero all vram
+  # - print and scroll a "nintendo" logo to the middle of the screen
+  # - 2 notable sounds are made
+  # - perform integrity check of the game program, basic form of DRM
+  #
+  # A video of the display showing the bootstrap process can be found here:
+  # https://www.youtube.com/watch?v=-Fh9SpWFdn0
+  #
+  # This program is mapped to memory at 0x00 to 0xFF when the device is turned on.
+  # The last instruction in the program will unmap the boot rom, making any read/write
+  # between 0x00 and 0xFF be sent to the game program instead.
+  #
+  # A detailed blog post of the gameboy's boostrap process can be found here:
+  # https://realboyemulator.wordpress.com/2013/01/03/a-look-at-the-game-boy-bootstrap-let-the-fun-begin/
+  #
+  # The source code of the Gameboy's boot rom can be found here:
+  # http://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM
   class BootROM
 
     ROM = [
@@ -29,6 +50,8 @@ module Waterfoul
     ].freeze
 
 
+    # Read bootstrap instruction given an index (memory location)
+    # @return Integer - instruction or immediate value
     def self.[](i)
       ROM[i]
     end
