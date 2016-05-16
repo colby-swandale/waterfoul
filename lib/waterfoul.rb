@@ -10,12 +10,6 @@ require "waterfoul/sound"
 require "waterfoul/errors"
 require "waterfoul/screen"
 require "waterfoul/gpu"
-require 'waterfoul/mbc/rom'
-require 'waterfoul/mbc/mbc1'
-require 'waterfoul/mbc/mbc2'
-require 'waterfoul/mbc/mbc3'
-require 'waterfoul/mbc/mbc4'
-require 'waterfoul/mbc/mbc5'
 require "waterfoul/cartridge"
 require "waterfoul/emulator"
 require "byebug"
