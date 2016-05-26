@@ -23,7 +23,7 @@ module Waterfoul
 
     def initialize(rom)
       # get cartridge type byte from game program
-      cartridge_type = $mmu.read_byte CARTRIDGE_TYPE_MEM_LOC
+      cartridge_type = rom[CARTRIDGE_TYPE_MEM_LOC]
       # assign memory bank controller to cartridge
       @mbc = cartrdige_controller cartridge_type, rom
     end
