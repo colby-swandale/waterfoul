@@ -1,14 +1,15 @@
+require 'pp'
 module Waterfoul
   class Emulator
-    def initialize(gamefile, options = {})
+    def initialize(rom_filename, options = {})
       # read the rom into host memory
-      rom = read_rom(gamefile).bytes
+      rom = read_program(rom_filename).bytes
       # initialize emulated CPU, GPU & Sound components
       cartridge = Cartridge.new rom
       # initialize emulated memory management unit
       $mmu = MMU.new cartridge
       cpu = CPU.new
-      @cpu = options[:skip_boot] ? SkipBoot.set_state(cpu) : cpu
+      @cpu = options.has_key?(:skip_boot) ? SkipBoot.set_state(cpu) : cpu
       @gpu = GPU.new
       @screen = Screen.new
       # @sound = Sound.new
@@ -25,7 +26,7 @@ module Waterfoul
 
     private
 
-    def read_rom(rom)
+    def read_program(rom)
       File.binread rom
     end
   end
