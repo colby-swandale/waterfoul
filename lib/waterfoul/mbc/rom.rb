@@ -3,8 +3,8 @@ module Waterfoul
     class ROM
       EXTERNAL_RAM_START_ADDR = 0xA000
 
-      def initialize(program, external_ram)
-        @external_ram = external_ram
+      def initialize(program)
+        @external_ram = []
         @program = program
       end
 
