@@ -9,7 +9,7 @@ module Waterfoul
       # initialize emulated memory management unit
       $mmu = MMU.new cartridge
       cpu = CPU.new
-      @cpu = options.has_key?(:skip_boot) ? SkipBoot.set_state(cpu) : cpu
+      @cpu = options.has_key?('skip_boot') ? SkipBoot.set_state(cpu) : cpu
       @gpu = GPU.new
       @screen = Screen.new
       # @sound = Sound.new
