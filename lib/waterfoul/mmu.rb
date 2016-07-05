@@ -20,8 +20,8 @@ module Waterfoul
     attr_reader :memory
 
     # Set the initial state the memory management unit when program starts
-    def initialize(cartidge)
-      @cartridge = cartidge
+    def initialize(cartridge)
+      @cartridge = cartridge
       # flag to indicate if the boot rom is mapped to memory
       @map_boot_rom = true
       # storage for usable memory (zero filled)
@@ -44,7 +44,7 @@ module Waterfoul
         # Working RAM
         @memory[i]
       when 0xA000..0xBFFF
-        @cartidge[i]
+        @cartridge[i]
       when 0xE000..0xFDFF
         # Working RAM (shadow)
         @memory[i - 0x1000]
@@ -67,7 +67,7 @@ module Waterfoul
         # unmap the boot rom when 0xFF50 is wrtiten to in memory
         @map_boot_rom = false if v == 0x1 && @map_boot_rom
       when 0x0..0x7FFF
-        @cartidge[i] = v
+        @cartridge[i] = v
       when 0xFF46
         byebug
       else
