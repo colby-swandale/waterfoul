@@ -1,6 +1,6 @@
 module Waterfoul
-  # set the state of the emulator to the same state it is in after the boot rom is executed.
-  # This helps us run the game program without needing to execute the boot rom every time
+  # Set the state of the emulator after it has finished running the bootloader and ready to execute
+  # the game program. This lets us run the game program without needing to execute the boot rom every time
   # the emulator is started.
   class SkipBoot
     def self.set_state(cpu)

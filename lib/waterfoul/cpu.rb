@@ -58,10 +58,7 @@ module Waterfoul
     # other cpu flags
     attr_reader :ime, :stop
 
-    ##
-    # Set the CPU to its initial state, the boot rom will then initialize
-    # the memory and registers to the approiate values before control is
-    # handed to the game cartridge
+    # init CPU registers to 0
     def initialize(options = {})
       @pc = 0x0000
       @sp = 0x0000
@@ -69,49 +66,21 @@ module Waterfoul
       @m = 0
     end
 
-    ##
     # This method emulates the CPU cycle process. Each instruction is
-    # fetched from memory (pointed by the program counter). The value in memory is then
-    # matched against an instruction from the set of opcodes.
-    # (see instructions/opcode.rb) and executed. This processes repeats infinitly
-    # until the process is closed.
+    # fetched from memory (pointed by the program counter) and executed.
+    # This processes repeats infinitly until the process is closed
     def step
-      if halt?
+      reset_tick
+      if halted?
         halt_step
-      end
-
-      if !halt?
-        reset_switches
+      else
         serve_interrupt if @ime
         instruction_byte = fetch_instruction
         perform_instruction instruction_byte
       end
     end
 
-    def serve_interrupt
-      interrupt = Interrupt.serve_interrupt
-
-      if interrupt > 0
-        @ime = false
-        push_onto_stack @pc
-        @m = 10
-      end
-
-      case interrupt
-      when Interrupt::INTERRUPT_VBLANK
-        @pc = 0x40
-      when Interrupt::INTERRUPT_LCDSTAT
-        @pc = 0x48
-      when Interrupt::INTERRUPT_TIMER
-        @pc = 0x50
-      when Interrupt::INTERRUPT_SERIAL
-        @pc = 0x58
-      when Interrupt::INTERRUPT_JOYPAD
-        @pc = 0x60
-      end
-    end
-
-    def halt?
+    def halted?
       @halt == true
     end
 
@@ -130,28 +99,60 @@ module Waterfoul
       @m = 2
     end
 
+    # Execute the instruction and 
     def perform_instruction(instruction)
       operation = OPCODE[instruction]
+      raise 'instruction not found' if operation.nil?
       # perform the instruction
       self.public_send operation
-      set_instruction_timing instruction
+      @m = instruction_cycle_time instruction
     end
 
-    def fetch_instruction
+    # fetch the next byte to be executed from memory and increment the program
+    # counter (except under particular circumstances, see interrupts)
+    def fetch_instruction(increment_pc = false)
       instruction_byte = $mmu.read_byte @pc
-      @pc = (@pc + 1) & 0xFFFF
+      @pc = (@pc + 1) & 0xFFFF unless increment_pc
       instruction_byte
     end
 
-    def set_instruction_timing(instruction)
+    private
+
+    # get the number of cycles a instruction takes to execute. The times
+    # can be found in the instruction opcode table
+    def instruction_cycle_time(instruction)
       if @branched
-        @m = OPCODE_CONDITIONAL_TIMINGS[instruction]
+        OPCODE_CONDITIONAL_TIMINGS[instruction]
       else
-        @m = OPCODE_TIMINGS[instruction]
+        OPCODE_TIMINGS[instruction]
       end
     end
 
-    def reset_switches
+    def serve_interrupt
+      interrupt = Interrupt.serve_interrupt
+      # skip if there is no interrupt to serve
+      return if interrupt == Interrupt::INTERRUPT_NONE
+      # master disable interrupts
+      @ime = false
+      push_onto_stack @pc
+      @m = 10
+      # point to instruction which handles appropiate interrupt
+      case interrupt
+      when Interrupt::INTERRUPT_VBLANK
+        @pc = 0x40
+      when Interrupt::INTERRUPT_LCDSTAT
+        @pc = 0x48
+      when Interrupt::INTERRUPT_TIMER
+        @pc = 0x50
+      when Interrupt::INTERRUPT_SERIAL
+        @pc = 0x58
+      when Interrupt::INTERRUPT_JOYPAD
+        @pc = 0x60
+      end
+    end
+
+    # reset variables that are set on every instruction
+    def reset_tick
       @branched = false
       @m = 0
     end
