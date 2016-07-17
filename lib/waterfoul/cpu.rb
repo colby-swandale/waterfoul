@@ -64,6 +64,7 @@ module Waterfoul
       @sp = 0x0000
       @a = @b = @c = @d = @e = @f = @h = @l = @f = 0x00
       @m = 0
+      @timer = Timer.new
     end
 
     # This method emulates the CPU cycle process. Each instruction is
@@ -77,6 +78,7 @@ module Waterfoul
         serve_interrupt if @ime
         instruction_byte = fetch_instruction
         perform_instruction instruction_byte
+        @timer.tick @m
       end
     end
 
