@@ -4,6 +4,7 @@ require 'waterfoul/mbc/mbc2'
 require 'waterfoul/mbc/mbc3'
 require 'waterfoul/mbc/mbc4'
 require 'waterfoul/mbc/mbc5'
+require 'forwardable'
 
 module Waterfoul
   # The cartridge is the removable cart containing the game program, some writable memory,
