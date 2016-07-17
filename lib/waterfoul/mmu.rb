@@ -18,10 +18,11 @@ module Waterfoul
     DIV_MEM_LOC = 0xFF04
 
     attr_reader :memory
+    attr_accessor :cartridge
 
     # Set the initial state the memory management unit when program starts
-    def initialize(cartridge)
-      @cartridge = cartridge
+    def initialize
+      @cartridge = []
       # flag to indicate if the boot rom is mapped to memory
       @map_boot_rom = true
       # storage for usable memory (zero filled)
@@ -58,18 +59,24 @@ module Waterfoul
     # Storage 1 byte into memory given address
     # @param i Integer location in memory to storage value
     # @param v Integer value to be written into memory
-    def []=(i, v)
+    def []=(i, v, options = {})
       # raise exception if an attempt is made to read memory that is out of bounds
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
-      case i
-      when UNMAP_BOOT_ROM_MEM_LOC
-        # unmap the boot rom when 0xFF50 is wrtiten to in memory
-        @map_boot_rom = false if v == 0x1 && @map_boot_rom
-      when 0x0..0x7FFF
-        @cartridge[i] = v
-      when 0xFF46
-        byebug
+      unless options[:hardware_operation]
+        case i
+        when UNMAP_BOOT_ROM_MEM_LOC
+          # unmap the boot rom when 0xFF50 is wrtiten to in memory
+          @map_boot_rom = false if v == 0x1 && @map_boot_rom
+        when 0x0..0x7FFF
+          @cartridge[i] = v
+        when 0xFF46
+          byebug
+        when 0xFF04 # reset divider register
+          self[i] = 0
+        else
+          @memory[i] = v
+        end
       else
         @memory[i] = v
       end

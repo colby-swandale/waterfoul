@@ -7,7 +7,8 @@ module Waterfoul
       # initialize emulated CPU, GPU & Sound components
       cartridge = Cartridge.new rom
       # initialize emulated memory management unit
-      $mmu = MMU.new cartridge
+      $mmu = MMU.new
+      $mmu.cartridge = cartridge
       cpu = CPU.new
       @cpu = options.has_key?('skip_boot') ? SkipBoot.set_state(cpu) : cpu
       @gpu = GPU.new
