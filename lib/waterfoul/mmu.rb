@@ -70,8 +70,8 @@ module Waterfoul
           @map_boot_rom = false if v == 0x1 && @map_boot_rom
         when 0x0..0x7FFF
           @cartridge[i] = v
-        when 0xFF46
-          byebug
+        when 0xFF46 # DMA transfer
+          dma_transfer v
         when 0xFF04 # reset divider register
           self[i] = 0
         else
@@ -99,6 +99,16 @@ module Waterfoul
     def write_word(addr, word)
       write_byte addr, ( word & 0xFF )
       write_byte addr + 1, ( word >> 8 )
+    end
+
+    private
+
+    def dma_transfer(start)
+      addr = start << 8
+      0.upto(0xA0) do |i|
+        sprite_byte = $mmu.read_byte(addr + i)
+        self[0xFE00 + i] = sprite_byte
+      end
     end
   end
 end
