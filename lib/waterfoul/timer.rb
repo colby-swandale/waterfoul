@@ -28,7 +28,13 @@ module Waterfoul
 
     def inc_tima_register
       tima = $mmu.read_byte 0xFF05
-      tima = (tima + 1) & 0xFF
+      if tima == 0xFF
+        tima = $mmu.read_byte 0xFF06
+        Interrupt.request_interrupt(Interrupt::INTERRUPT_TIMER)
+      else
+        tima = (tima + 1) & 0xFF
+      end
+
       $mmu.write_byte 0xFF05, tima, hardware_operation: true
     end
 
@@ -46,7 +52,7 @@ module Waterfoul
     end
 
     def update
-      $mmu.read_byte 0xFF07
+      @register = $mmu.read_byte 0xFF07
     end
 
     def running?
