@@ -73,7 +73,7 @@ module Waterfoul
         when 0xFF46 # DMA transfer
           dma_transfer v
         when 0xFF04 # reset divider register
-          self[i] = 0
+          @memory[i] = 0
         else
           @memory[i] = v
         end
