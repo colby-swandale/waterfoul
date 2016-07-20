@@ -35,22 +35,21 @@ module Waterfoul
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
       case i
-      when 0x0000..0x7FFF
+      when 0x0000...0x8000 # ROM Bank 0 + n
         if @map_boot_rom && i <= BOOT_ROM_END_MEM_LOC
           BootROM[i]
         else
           @cartridge[i]
         end
-      when 0x8000..0xDFFF
-        # Working RAM
+      when 0x8000...0xA000 # Video RAM
         @memory[i]
-      when 0xA000..0xBFFF
+      when 0xA000...0xC000 # RAM Bank
         @cartridge[i]
-      when 0xE000..0xFDFF
-        # Working RAM (shadow)
+      when 0xC000...0xE000 # Internal RAM
+        @memory[i]
+      when 0xE000...0xFE00 # Internal RAM (shadow)
         @memory[i - 0x1000]
-      when 0xFE00..0xFFFF
-        # Graphics, IO, Zero-page
+      when 0xFE00..0xFFFF # Graphics (OAM), IO, Zero-page
         @memory[i]
       end
     end
@@ -65,16 +64,23 @@ module Waterfoul
 
       unless options[:hardware_operation]
         case i
-        when UNMAP_BOOT_ROM_MEM_LOC
-          # unmap the boot rom when 0xFF50 is wrtiten to in memory
+        when UNMAP_BOOT_ROM_MEM_LOC # unmap the boot rom when 0xFF50 is wrtiten to in memory
           @map_boot_rom = false if v == 0x1 && @map_boot_rom
-        when 0x0..0x7FFF
-          @cartridge[i] = v
         when 0xFF46 # DMA transfer
           dma_transfer v
         when 0xFF04 # reset divider register
           @memory[i] = 0
-        else
+        when 0x0...0x8000 # ROM Bank 0 + n
+          @cartridge[i] = v
+        when 0x8000...0xA000 # Video RAM
+          @memory[i] = v
+        when 0xA000...0xC000 # RAM Bank
+          @cartridge[i] = v
+        when 0xC000...0xE000 # Internal RAM
+          @memory[i] = v
+        when 0xE000...0xFE00 # Internal RAM (Shadow)
+          @memory[i - 0x1000] = v
+        when 0xFE00..0xFFFF # Graphics (OAM), IO, Zero Page
           @memory[i] = v
         end
       else
