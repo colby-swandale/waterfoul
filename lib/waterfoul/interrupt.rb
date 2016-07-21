@@ -17,25 +17,6 @@ module Waterfoul
       $mmu.write_byte IF_REG_MEM_LOC, (if_reg | interrupt)
     end
 
-    def self.serve_interrupt
-      if_reg = $mmu.read_byte IF_REG_MEM_LOC
-      interrupt = self.pending_interrupt
-      case interrupt
-      when INTERRUPT_VBLANK
-        $mmu.write_byte IF_REG_MEM_LOC, (if_reg & 0xFE)
-      when INTERRUPT_LCDSTAT
-        $mmu.write_byte IF_REG_MEM_LOC, (if_reg & 0xFD)
-      when INTERRUPT_TIMER
-        $mmu.write_byte IF_REG_MEM_LOC, (if_reg & 0xFB)
-      when INTERRUPT_SERIAL
-        $mmu.write_byte IF_REG_MEM_LOC, (if_reg & 0xF7)
-      when INTERRUPT_JOYPAD
-        $mmu.write_byte IF_REG_MEM_LOC, (if_reg & 0xEF)
-      end
-
-      interrupt
-    end
-
     def self.pending_interrupt
       ie_reg = $mmu.read_byte IE_REG_MEM_LOC
       if_reg = $mmu.read_byte IF_REG_MEM_LOC
