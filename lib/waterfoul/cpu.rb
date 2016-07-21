@@ -78,8 +78,8 @@ module Waterfoul
         serve_interrupt if @ime
         instruction_byte = fetch_instruction
         perform_instruction instruction_byte
-        @timer.tick @m
       end
+      @timer.tick @m
     end
 
     def halted?
