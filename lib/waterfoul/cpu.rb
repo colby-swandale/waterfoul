@@ -131,13 +131,13 @@ module Waterfoul
     end
 
     def serve_interrupt
-      interrupt = Interrupt.serve_interrupt
+      interrupt = Interrupt.pending_interrupt
       # skip if there is no interrupt to serve
       return if interrupt == Interrupt::INTERRUPT_NONE
       # master disable interrupts
       @ime = false
       push_onto_stack @pc
-      @m = 10
+      @m = 20
       # point to instruction which handles appropiate interrupt
       case interrupt
       when Interrupt::INTERRUPT_VBLANK
