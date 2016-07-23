@@ -65,6 +65,7 @@ module Waterfoul
       @a = @b = @c = @d = @e = @f = @h = @l = @f = 0x00
       @m = 0
       @timer = Timer.new
+      @ime = false
     end
 
     # This method emulates the CPU cycle process. Each instruction is
@@ -72,13 +73,9 @@ module Waterfoul
     # This processes repeats infinitly until the process is closed
     def step
       reset_tick
-      if halted?
-        halt_step
-      else
-        serve_interrupt if @ime
-        instruction_byte = fetch_instruction
-        perform_instruction instruction_byte
-      end
+      serve_interrupt if @ime
+      instruction_byte = fetch_instruction
+      perform_instruction instruction_byte
       @timer.tick @m
     end
 
@@ -107,7 +104,7 @@ module Waterfoul
       raise 'instruction not found' if operation.nil?
       # perform the instruction
       self.public_send operation
-      @m = instruction_cycle_time instruction
+      @m = instruction_cycle_time(instruction) * 4
     end
 
     # fetch the next byte to be executed from memory and increment the program
@@ -123,7 +120,9 @@ module Waterfoul
     # get the number of cycles a instruction takes to execute. The times
     # can be found in the instruction opcode table
     def instruction_cycle_time(instruction)
-      if @branched
+      if @prefix_cb
+        CB_OPCODE_TIMINGS[@prefix_cb]
+      elsif @branched
         OPCODE_CONDITIONAL_TIMINGS[instruction]
       else
         OPCODE_TIMINGS[instruction]
@@ -137,24 +136,30 @@ module Waterfoul
       # master disable interrupts
       @ime = false
       push_onto_stack @pc
-      @m = 20
-      # point to instruction which handles appropiate interrupt
+      if_reg = $mmu.read_byte 0xFF0F
       case interrupt
       when Interrupt::INTERRUPT_VBLANK
         @pc = 0x40
+        $mmu.write_byte(0xFF0F, if_reg & 0xFE)
       when Interrupt::INTERRUPT_LCDSTAT
         @pc = 0x48
+        $mmu.write_byte(0xFF0F, if_reg & 0xFD)
       when Interrupt::INTERRUPT_TIMER
         @pc = 0x50
+        $mmu.write_byte(0xFF0F, if_reg & 0xFB)
       when Interrupt::INTERRUPT_SERIAL
         @pc = 0x58
+        $mmu.write_byte(0xFF0F, if_reg & 0xF7)
       when Interrupt::INTERRUPT_JOYPAD
         @pc = 0x60
+        $mmu.write_byte(0xFF0F, if_reg & 0xEF)
       end
+      @m = 20
     end
 
     # reset variables that are set on every instruction
     def reset_tick
+      @prefix_cb = false
       @branched = false
       @m = 0
     end

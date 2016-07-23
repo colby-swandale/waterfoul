@@ -1,6 +1,6 @@
 module Waterfoul
   class Timer
-    DIV_INC_TIME = 255 # cycles
+    DIV_INC_TIME = 256 # cycles
 
     def initialize
       @div_cycles = 0
@@ -9,8 +9,6 @@ module Waterfoul
     end
 
     def tick(cycles = 0)
-      # increment TIMA and DIV register
-      @tima_cycles += cycles
       @div_cycles += cycles
       # incremnt DIV register if its time to
       inc_div_register if @div_cycles >= DIV_INC_TIME
@@ -18,6 +16,8 @@ module Waterfoul
       @tima.update
       # dont bother if TIMA is not running
       if @tima.running?
+        # increment TIMA and DIV register
+        @tima_cycles += cycles
         frequency = @tima.frequency
         if @tima_cycles >= frequency
           inc_tima_register
@@ -32,7 +32,7 @@ module Waterfoul
         tima = $mmu.read_byte 0xFF06
         Interrupt.request_interrupt(Interrupt::INTERRUPT_TIMER)
       else
-        tima = (tima + 1) & 0xFF
+        tima += 1
       end
 
       $mmu.write_byte 0xFF05, tima, hardware_operation: true

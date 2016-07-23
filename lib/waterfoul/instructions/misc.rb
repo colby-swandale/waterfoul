@@ -34,10 +34,10 @@ module Waterfoul
       # @flags - - - -
       def prefix_cb
         ins = $mmu.read_byte @pc
+        @prefix_cb = ins
         @pc += 1
 
         opcode = Waterfoul::CPU::CB_OPCODE[ins]
-        #p "cb opcode: #{opcode}"
         self.public_send opcode
       end
 
