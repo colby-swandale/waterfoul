@@ -170,19 +170,36 @@ module Waterfoul
 
       def daa
         temp_a = @a
+
         if @f & N_FLAG == 0x00
-          temp_a = temp_a + 0x6 if @f & H_FLAG == H_FLAG || temp_a & 0xF > 0x9
-          temp_a = temp_a + 0x60 if @f & C_FLAG == C_FLAG || temp_a > 0x9F
+          if @f & H_FLAG == H_FLAG || (temp_a & 0xF) > 0x9
+            temp_a = temp_a + 0x06
+          end
+
+          if @f & C_FLAG == C_FLAG || (temp_a > 0x9F)
+            temp_a = temp_a + 0x60
+          end
         else
-          temp_a = (temp_a - 0x6) & 0xFF if @f & H_FLAG == H_FLAG
-          temp_a = temp_a - 0x60 if @f & C_FLAG == C_FLAG
+          if @f & H_FLAG == H_FLAG
+            temp_a = (temp_a - 0x06) & 0xFF
+          end
+
+          if @f & C_FLAG == C_FLAG
+            temp_a = temp_a - 0x60
+          end
         end
 
-        reset_flags H_FLAG
+        reset_flags H_FLAG, Z_FLAG
 
-        temp_a & 0xFF == 0x00 ? set_z_flag : reset_z_flag
-        temp_a & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        @a = temp_a & 0xFF
+        if temp_a & 0x100 == 0x100
+          set_flags C_FLAG
+        end
+
+        temp_a = temp_a & 0xFF
+
+        set_flags Z_FLAG if temp_a == 0x0
+
+        @a = temp_a
       end
 
       def scf
