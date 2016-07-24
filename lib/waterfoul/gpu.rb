@@ -52,6 +52,7 @@ module Waterfoul
               @mode = V_BLANK_STATE
               @vblank_line = 0
               @auxillary_modeclock = @modeclock
+              Interrupt.request_interrupt(Interrupt::INTERRUPT_VBLANK)
               if @hide_frames > 0
                 @hide_frames -= 1
               else
