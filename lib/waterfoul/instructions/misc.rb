@@ -19,6 +19,7 @@ module Waterfoul
       # Halt CPU & LCD display until button pressed.
       # @flags - - - -
       def halt
+        @pre_halt_interrupt = $mmu.read_byte(0xFF0F)
         @halt = true
       end
 

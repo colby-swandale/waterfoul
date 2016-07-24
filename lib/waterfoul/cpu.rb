@@ -74,28 +74,22 @@ module Waterfoul
     def step
       reset_tick
       serve_interrupt if @ime
-      instruction_byte = fetch_instruction
-      perform_instruction instruction_byte
+      check_halt if @halt
+      if halted?
+        @m = 4
+      else
+        instruction_byte = fetch_instruction
+        perform_instruction instruction_byte
+      end
       @timer.tick @m
+    end
+
+    def check_halt
+      @halt = false if @pre_halt_interrupt != $mmu.read_byte(0xFF0F)
     end
 
     def halted?
       @halt == true
-    end
-
-    def halt_step
-      if @halt_cycles > 0
-        @halt_cycles -= 2
-        if @halt_cycles <= 0
-          @halt_cycles = 0
-          @halt = false
-        end
-      end
-
-      if @halt && Interrupt.pending_interupts != Interrupt::INTERRUPT_NONE && @halt_cycles == 0
-        @halt_cycles = HALT_CYCLES
-      end
-      @m = 2
     end
 
     # Execute the instruction and 
