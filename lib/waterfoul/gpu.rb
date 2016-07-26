@@ -33,6 +33,7 @@ module Waterfoul
       @window_line = 0
       @hide_frames = 0
       @screen_enable_delay_cycles = 0
+      @lcd_stat = 0
     end
 
     def step(time)
@@ -45,6 +46,7 @@ module Waterfoul
         when H_BLANK_STATE
           if @modeclock >= H_BLANK_TIME
             @modeclock = 0
+            @mode = OAM_READ_STATE
             inc_current_line
             compare_lylc
 
@@ -53,6 +55,16 @@ module Waterfoul
               @vblank_line = 0
               @auxillary_modeclock = @modeclock
               Interrupt.request_interrupt(Interrupt::INTERRUPT_VBLANK)
+              @lcd_stat = @lcd_stat & 0x9
+              stat = $mmu.read_byte 0xFF41
+              if stat & 0x10 == 0x10
+                if (@lcd_stat & 0x1 == 0x0) && (@lcd_stat & 0x8 == 0x0)
+                  Interrupt.request_interrupt(INTERUPT_LCDSTAT)
+                end
+                @lcd_stat = @lcd_stat | 0x2
+              end
+              @lcd_stat = @lcd_stat & 0xE
+
               if @hide_frames > 0
                 @hide_frames -= 1
               else
@@ -60,7 +72,15 @@ module Waterfoul
               end
               @window_line = 0
             else
-              @mode = OAM_READ_STATE
+              @lcd_stat = @lcd_stat & 0x9
+              stat = $mmu.read_byte(0xFF41)
+              if stat & 0x20 == 0x20
+                if @lcd_stat == 0x0
+                  Interrupt.request_interrupt(INTERRUPT_LCDSTAT)
+                end
+                @lcd_stat = @lcd_stat | 0x4
+              end
+              @lcd_stat = @lcd_stat & 0xE
             end
 
             update_stat
@@ -85,13 +105,25 @@ module Waterfoul
             @modeclock = 0
             @mode = OAM_READ_STATE
             update_stat
+            @lcd_stat = @lcd_stat & 0x7
             compare_lylc
+            @lcd_stat = @lcd_stat & 0xA
+
+            stat = $mmu.read_byte 0xFF41
+            if stat & 0x20 == 0x20
+              if @lcd_stat == 0
+                Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
+              end
+              @lcd_stat = @lcd_stat | 0x4
+            end
+            @lcd_stat = @lcd_stat & 0xD
           end
         when OAM_READ_STATE
           if @modeclock >= OAM_SCANLINE_TIME
             @modeclock = 0
             @scanline_transfered = false
             @mode = VMRAM_READ_STATE
+            @lcd_stat = @lcd_stat & 0x8
             update_stat
           end
         when VMRAM_READ_STATE
@@ -104,6 +136,14 @@ module Waterfoul
             @modeclock = 0
             @mode = H_BLANK_STATE
             update_stat
+            @lcd_stat = @lcd_stat & 0x8
+            stat = $mmu.read_byte 0xFF41
+            if stat & 0x4 == 0x4
+              if @lcd_stat & 0x4 == 0x0
+                Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
+              end
+              @lcd_stat = @lcd_stat | 0x1
+            end
           end
         end
       else
