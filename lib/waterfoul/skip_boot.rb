@@ -28,6 +28,7 @@ module Waterfoul
       $mmu.write_byte 0xFF25, 0xF3
       $mmu.write_byte 0xFF26, 0xF1
       $mmu.write_byte 0xFF40, 0x91
+      $mmu.write_byte 0xFF41, 0x5
       $mmu.write_byte 0xFF47, 0xFC
       $mmu.write_byte 0xFF48, 0xFF
       $mmu.write_byte 0xFF49, 0xFF
