@@ -60,7 +60,7 @@ module Waterfoul
             @mode = 0
             @modeclock = 0
             @auxillary_modeclock = 0
-            set_current_line 0
+            reset_current_line
             @window_line = 0
             @vblank_line = 0
 
@@ -83,7 +83,7 @@ module Waterfoul
           @modeclock -= VRAM_SCANLINE_TIME
           @mode = H_BLANK_STATE
           scanline
-          update_stat
+          update_stat_mode
         end
       end
 
@@ -92,7 +92,7 @@ module Waterfoul
           @modeclock -= OAM_SCANLINE_TIME
           @scanline_transfered = false
           @mode = VMRAM_READ_STATE
-          update_stat
+          update_stat_mode
         end
       end
 
@@ -100,7 +100,7 @@ module Waterfoul
         if @modeclock >= H_BLANK_TIME
           @modeclock -= H_BLANK_TIME
           @mode = OAM_READ_STATE
-          inc_current_line
+          next_line
           compare_lylc
 
           if current_line == 144
@@ -117,45 +117,38 @@ module Waterfoul
             @window_line = 0
           end
 
-          update_stat
+          update_stat_mode
         end
       end
 
       def vblank
         if @auxillary_modeclock >= 456
-          @auxillary_modeclock = 0
+          @auxillary_modeclock -= 456
           @vblank_line += 1
 
           if @vblank_line <= 9
-            inc_current_line
+            next_line
             compare_lylc
           end
         end
         if @modeclock >= 4104 && @auxillary_modeclock >= 4 && current_line == 153
-          set_current_line 0
+          reset_current_line
         end
 
         if @modeclock >= V_BLANK_TIME
           @modeclock -= V_BLANK_TIME
           @mode = OAM_READ_STATE
-          update_stat
+          update_stat_mode
         end
       end
 
       def scanline
-        if IO::LCDControl.screen_enabled?
-          render_bg
-        end
+        render_bg
       end
 
-      def update_stat
+      def update_stat_mode
         stat = $mmu.read_byte 0xFF41
-        # reset byte 0-1
-        stat &= 0xFC
-        # set mode flag
-        stat |= (@mode & 0x3)
-
-        $mmu.write_byte 0xFF41, stat
+        $mmu.write_byte 0xFF41, (stat & 0xFC) | (@mode & 0x3)
       end
 
       def render_bg
@@ -236,17 +229,12 @@ module Waterfoul
         $mmu.read_byte LCDC_Y_COORDINATE_MEM_LOC
       end
 
-      def set_current_line(val)
-        $mmu.write_byte LCDC_Y_COORDINATE_MEM_LOC, val
+      def reset_current_line
+        $mmu.write_byte LCDC_Y_COORDINATE_MEM_LOC, 0
       end
 
-      def inc_current_line(inc_by = 1)
-        curr_line = current_line
-        $mmu.write_byte LCDC_Y_COORDINATE_MEM_LOC, (curr_line + inc_by)
-      end
-
-      def reset_framebuffer
-        raise
+      def next_line
+        $mmu.write_byte LCDC_Y_COORDINATE_MEM_LOC, current_line + 1
       end
   end
 end
