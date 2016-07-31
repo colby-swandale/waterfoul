@@ -39,111 +39,18 @@ module Waterfoul
       # update lcd control
       @vblank = false
       @modeclock += cycles
+      @auxillary_modeclock += cycles
 
       if IO::LCDControl.screen_enabled?
         case @mode
         when H_BLANK_STATE
-          if @modeclock >= H_BLANK_TIME
-            @modeclock -= H_BLANK_TIME
-            @mode = OAM_READ_STATE
-            inc_current_line
-            compare_lylc
-
-            if current_line == 144
-              @mode = V_BLANK_STATE
-              @vblank_line = 0
-              @auxillary_modeclock = @modeclock
-              Interrupt.request_interrupt(Interrupt::INTERRUPT_VBLANK)
-              @lcd_stat = @lcd_stat & 0x9
-              stat = $mmu.read_byte 0xFF41
-              if stat & 0x10 == 0x10
-                if (@lcd_stat & 0x1 == 0x0) && (@lcd_stat & 0x8 == 0x0)
-                  Interrupt.request_interrupt(INTERUPT_LCDSTAT)
-                end
-                @lcd_stat = @lcd_stat | 0x2
-              end
-              @lcd_stat = @lcd_stat & 0xE
-
-              if @hide_frames > 0
-                @hide_frames -= 1
-              else
-                @vblank = true
-              end
-              @window_line = 0
-            else
-              @lcd_stat = @lcd_stat & 0x9
-              stat = $mmu.read_byte(0xFF41)
-              if stat & 0x20 == 0x20
-                if @lcd_stat == 0x0
-                  Interrupt.request_interrupt(INTERRUPT_LCDSTAT)
-                end
-                @lcd_stat = @lcd_stat | 0x4
-              end
-              @lcd_stat = @lcd_stat & 0xE
-            end
-
-            update_stat
-          end
+          hblank
         when V_BLANK_STATE
-          @auxillary_modeclock += cycles
-
-          if @auxillary_modeclock >= 456
-            @auxillary_modeclock = 0
-            @vblank_line += 1
-
-            if @vblank_line <= 9
-              inc_current_line
-              compare_lylc
-            end
-          end
-          if @modeclock >= 4104 && @auxillary_modeclock >= 4 && current_line == 153
-            set_current_line 0
-          end
-
-          if @modeclock >= V_BLANK_TIME
-            @modeclock -= V_BLANK_TIME
-            @mode = OAM_READ_STATE
-            update_stat
-            @lcd_stat = @lcd_stat & 0x7
-            compare_lylc
-            @lcd_stat = @lcd_stat & 0xA
-
-            stat = $mmu.read_byte 0xFF41
-            if stat & 0x20 == 0x20
-              if @lcd_stat == 0
-                Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
-              end
-              @lcd_stat = @lcd_stat | 0x4
-            end
-            @lcd_stat = @lcd_stat & 0xD
-          end
+          vblank
         when OAM_READ_STATE
-          if @modeclock >= OAM_SCANLINE_TIME
-            @modeclock -= OAM_SCANLINE_TIME
-            @scanline_transfered = false
-            @mode = VMRAM_READ_STATE
-            @lcd_stat = @lcd_stat & 0x8
-            update_stat
-          end
+          oam
         when VMRAM_READ_STATE
-          if !@scanline_transfered && @modeclock >= (current_line == 0 ? 160 : 48 )
-            @scanline_transfered = true
-            scanline
-          end
-
-          if @modeclock >= VRAM_SCANLINE_TIME
-            @modeclock -= VRAM_SCANLINE_TIME
-            @mode = H_BLANK_STATE
-            update_stat
-            @lcd_stat = @lcd_stat & 0x8
-            stat = $mmu.read_byte 0xFF41
-            if stat & 0x4 == 0x4
-              if @lcd_stat & 0x4 == 0x0
-                Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
-              end
-              @lcd_stat = @lcd_stat | 0x1
-            end
-          end
+          vram
         end
       else
         if @screen_enable_delay_cycles > 0
@@ -172,6 +79,114 @@ module Waterfoul
     end
 
     private
+
+      def vram
+        if !@scanline_transfered && @modeclock >= (current_line == 0 ? 160 : 48 )
+          @scanline_transfered = true
+          scanline
+        end
+
+        if @modeclock >= VRAM_SCANLINE_TIME
+          @modeclock -= VRAM_SCANLINE_TIME
+          @mode = H_BLANK_STATE
+          update_stat
+          @lcd_stat = @lcd_stat & 0x8
+          stat = $mmu.read_byte 0xFF41
+          if stat & 0x4 == 0x4
+            if @lcd_stat & 0x4 == 0x0
+              Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
+            end
+            @lcd_stat = @lcd_stat | 0x1
+          end
+        end
+      end
+
+      def oam
+        if @modeclock >= OAM_SCANLINE_TIME
+          @modeclock -= OAM_SCANLINE_TIME
+          @scanline_transfered = false
+          @mode = VMRAM_READ_STATE
+          @lcd_stat = @lcd_stat & 0x8
+          update_stat
+        end
+      end
+
+      def hblank
+        if @modeclock >= H_BLANK_TIME
+          @modeclock -= H_BLANK_TIME
+          @mode = OAM_READ_STATE
+          inc_current_line
+          compare_lylc
+
+          if current_line == 144
+            @mode = V_BLANK_STATE
+            @vblank_line = 0
+            @auxillary_modeclock = @modeclock
+            Interrupt.request_interrupt(Interrupt::INTERRUPT_VBLANK)
+            @lcd_stat = @lcd_stat & 0x9
+            stat = $mmu.read_byte 0xFF41
+            if stat & 0x10 == 0x10
+              if (@lcd_stat & 0x1 == 0x0) && (@lcd_stat & 0x8 == 0x0)
+                Interrupt.request_interrupt(INTERUPT_LCDSTAT)
+              end
+              @lcd_stat = @lcd_stat | 0x2
+            end
+            @lcd_stat = @lcd_stat & 0xE
+
+            if @hide_frames > 0
+              @hide_frames -= 1
+            else
+              @vblank = true
+            end
+            @window_line = 0
+          else
+            @lcd_stat = @lcd_stat & 0x9
+            stat = $mmu.read_byte(0xFF41)
+            if stat & 0x20 == 0x20
+              if @lcd_stat == 0x0
+                Interrupt.request_interrupt(INTERRUPT_LCDSTAT)
+              end
+              @lcd_stat = @lcd_stat | 0x4
+            end
+            @lcd_stat = @lcd_stat & 0xE
+          end
+
+          update_stat
+        end
+      end
+
+      def vblank
+        if @auxillary_modeclock >= 456
+          @auxillary_modeclock = 0
+          @vblank_line += 1
+
+          if @vblank_line <= 9
+            inc_current_line
+            compare_lylc
+          end
+        end
+        if @modeclock >= 4104 && @auxillary_modeclock >= 4 && current_line == 153
+          set_current_line 0
+        end
+
+        if @modeclock >= V_BLANK_TIME
+          @modeclock -= V_BLANK_TIME
+          @mode = OAM_READ_STATE
+          update_stat
+          @lcd_stat = @lcd_stat & 0x7
+          compare_lylc
+          @lcd_stat = @lcd_stat & 0xA
+
+          stat = $mmu.read_byte 0xFF41
+          if stat & 0x20 == 0x20
+            if @lcd_stat == 0
+              Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
+            end
+            @lcd_stat = @lcd_stat | 0x4
+          end
+          @lcd_stat = @lcd_stat & 0xD
+        end
+      end
 
       def scanline
         if IO::LCDControl.screen_enabled?
