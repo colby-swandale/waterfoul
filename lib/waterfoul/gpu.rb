@@ -131,7 +131,8 @@ module Waterfoul
 
     def update_stat_mode
       stat = $mmu.read_byte 0xFF41
-      $mmu.write_byte 0xFF41, (stat & 0xFC) | (@mode & 0x3)
+      new_stat = (stat & 0xFC) | (@mode & 0x3)
+      $mmu.write_byte 0xFF41, new_stat
     end
 
     def render_bg
@@ -192,16 +193,17 @@ module Waterfoul
     end
 
     def compare_lylc
-      lyc = $mmu.read_byte 0xFF45
-      stat = $mmu.read_byte 0xFF41
+      if IO::LCDControl.screen_enabled?
+        lyc = $mmu.read_byte 0xFF45
+        stat = $mmu.read_byte 0xFF41
 
-      if lyc == current_line
-        stat |= BIT_2
-      else
-        stat = stat & 0xFB
+        if lyc == current_line
+          stat = stat | 0x4
+        else
+          stat = stat & 0xFB
+        end
+        $mmu.write_byte 0xFF41, stat
       end
-
-      $mmu.write_byte 0xFF41, stat
     end
 
     def current_line
