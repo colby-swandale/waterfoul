@@ -45,7 +45,7 @@ module Waterfoul
         case @mode
         when H_BLANK_STATE
           if @modeclock >= H_BLANK_TIME
-            @modeclock = 0
+            @modeclock -= H_BLANK_TIME
             @mode = OAM_READ_STATE
             inc_current_line
             compare_lylc
@@ -102,7 +102,7 @@ module Waterfoul
           end
 
           if @modeclock >= V_BLANK_TIME
-            @modeclock = 0
+            @modeclock -= V_BLANK_TIME
             @mode = OAM_READ_STATE
             update_stat
             @lcd_stat = @lcd_stat & 0x7
@@ -120,7 +120,7 @@ module Waterfoul
           end
         when OAM_READ_STATE
           if @modeclock >= OAM_SCANLINE_TIME
-            @modeclock = 0
+            @modeclock -= OAM_SCANLINE_TIME
             @scanline_transfered = false
             @mode = VMRAM_READ_STATE
             @lcd_stat = @lcd_stat & 0x8
@@ -133,7 +133,7 @@ module Waterfoul
           end
 
           if @modeclock >= VRAM_SCANLINE_TIME
-            @modeclock = 0
+            @modeclock -= VRAM_SCANLINE_TIME
             @mode = H_BLANK_STATE
             update_stat
             @lcd_stat = @lcd_stat & 0x8
