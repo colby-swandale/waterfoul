@@ -33,11 +33,11 @@ module Waterfoul
       @lcd_stat = 0
     end
 
-    def step(time)
+    def step(cycles)
       # update lcd control
       @vblank = false
+      @modeclock += cycles
 
-      @modeclock += time
       if IO::LCDControl.screen_enabled?
         case @mode
         when H_BLANK_STATE
@@ -83,7 +83,7 @@ module Waterfoul
             update_stat
           end
         when V_BLANK_STATE
-          @auxillary_modeclock += time
+          @auxillary_modeclock += cycles
 
           if @auxillary_modeclock >= 456
             @auxillary_modeclock = 0
