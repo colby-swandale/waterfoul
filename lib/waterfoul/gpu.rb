@@ -24,11 +24,11 @@ module Waterfoul
 
     def initialize
       @framebuffer = Array.new FRAMEBUFFER_SIZE, 0
-      @mode = OAM_READ_STATE
+      @mode = V_BLANK_STATE
       @modeclock = 0
-      @auxillary_modeclock = 0
       @vblank_line = 0
-      @screen_enable_delay_cycles = 0
+      @auxillary_modeclock = 0
+      @screen_enabled = true
     end
 
     def step(cycles = 1)
@@ -36,7 +36,7 @@ module Waterfoul
       @modeclock += cycles
       @auxillary_modeclock += cycles
 
-      if IO::LCDControl.screen_enabled?
+      if IO::LCDControl.screen_enabled? && @screen_enabled
         case @mode
         when H_BLANK_STATE
           hblank if @modeclock >= H_BLANK_TIME
@@ -48,23 +48,16 @@ module Waterfoul
           vram if @modeclock >= VRAM_SCANLINE_TIME
         end
       else
-        if @screen_enable_delay_cycles > 0
-          @screen_enable_delay_cycles -= @modeclock
-
-          if @screen_enable_delay_cycles <= 0
-            @screen_enable_delay_cycles = 0
-            @hide_frames = 3
-            @mode = 0
-            @modeclock = 0
-            @auxillary_modeclock = 0
-            reset_current_line
-            @window_line = 0
-            @vblank_line = 0
-
-            compare_lylc
-          end
+        if IO::LCDControl.screen_enabled?
+          @screen_enabled = true
+          @modeclock = 0
+          @mode = 0
+          @auxillary_modeclock = 0
+          reset_current_line
+          update_stat_mode
+          compare_lylc
         else
-          @screen_enable_delay_cycles = 244
+          @screen_enabled = false
         end
       end
     end
