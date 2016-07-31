@@ -32,11 +32,9 @@ module Waterfoul
       @window_line = 0
       @hide_frames = 0
       @screen_enable_delay_cycles = 0
-      @lcd_stat = 0
     end
 
     def step(cycles = 1)
-      # update lcd control
       @vblank = false
       @modeclock += cycles
       @auxillary_modeclock += cycles
@@ -81,23 +79,11 @@ module Waterfoul
     private
 
       def vram
-        if !@scanline_transfered && @modeclock >= (current_line == 0 ? 160 : 48 )
-          @scanline_transfered = true
-          scanline
-        end
-
         if @modeclock >= VRAM_SCANLINE_TIME
           @modeclock -= VRAM_SCANLINE_TIME
           @mode = H_BLANK_STATE
+          scanline
           update_stat
-          @lcd_stat = @lcd_stat & 0x8
-          stat = $mmu.read_byte 0xFF41
-          if stat & 0x4 == 0x4
-            if @lcd_stat & 0x4 == 0x0
-              Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
-            end
-            @lcd_stat = @lcd_stat | 0x1
-          end
         end
       end
 
@@ -106,7 +92,6 @@ module Waterfoul
           @modeclock -= OAM_SCANLINE_TIME
           @scanline_transfered = false
           @mode = VMRAM_READ_STATE
-          @lcd_stat = @lcd_stat & 0x8
           update_stat
         end
       end
@@ -123,15 +108,6 @@ module Waterfoul
             @vblank_line = 0
             @auxillary_modeclock = @modeclock
             Interrupt.request_interrupt(Interrupt::INTERRUPT_VBLANK)
-            @lcd_stat = @lcd_stat & 0x9
-            stat = $mmu.read_byte 0xFF41
-            if stat & 0x10 == 0x10
-              if (@lcd_stat & 0x1 == 0x0) && (@lcd_stat & 0x8 == 0x0)
-                Interrupt.request_interrupt(INTERUPT_LCDSTAT)
-              end
-              @lcd_stat = @lcd_stat | 0x2
-            end
-            @lcd_stat = @lcd_stat & 0xE
 
             if @hide_frames > 0
               @hide_frames -= 1
@@ -139,16 +115,6 @@ module Waterfoul
               @vblank = true
             end
             @window_line = 0
-          else
-            @lcd_stat = @lcd_stat & 0x9
-            stat = $mmu.read_byte(0xFF41)
-            if stat & 0x20 == 0x20
-              if @lcd_stat == 0x0
-                Interrupt.request_interrupt(INTERRUPT_LCDSTAT)
-              end
-              @lcd_stat = @lcd_stat | 0x4
-            end
-            @lcd_stat = @lcd_stat & 0xE
           end
 
           update_stat
@@ -173,26 +139,12 @@ module Waterfoul
           @modeclock -= V_BLANK_TIME
           @mode = OAM_READ_STATE
           update_stat
-          @lcd_stat = @lcd_stat & 0x7
-          compare_lylc
-          @lcd_stat = @lcd_stat & 0xA
-
-          stat = $mmu.read_byte 0xFF41
-          if stat & 0x20 == 0x20
-            if @lcd_stat == 0
-              Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
-            end
-            @lcd_stat = @lcd_stat | 0x4
-          end
-          @lcd_stat = @lcd_stat & 0xD
         end
       end
 
       def scanline
         if IO::LCDControl.screen_enabled?
           render_bg
-          render_window
-          render_sprites
         end
       end
 
@@ -204,133 +156,6 @@ module Waterfoul
         stat |= (@mode & 0x3)
 
         $mmu.write_byte 0xFF41, stat
-      end
-
-      def render_window
-        line = current_line
-        line_width = line * Screen::SCREEN_WIDTH
-        # dont render if the window is outside the bounds of the screen or
-        # if the LCDC window enable bit flag is not set
-        return if @window_line > 143 || !IO::LCDControl.window_enabled?
-
-        window_pos_x = $mmu.read_byte(0xFF4B) - 7
-        window_pos_y = $mmu.read_byte(0xFF4A)
-
-        # don't render if the window is outside the bounds of the screen
-        return if window_pos_x > 159 || window_pos_y > 143 || window_pos_y > line
-
-        map_select = IO::LCDControl.window_map_select
-        tiles_select = IO::LCDControl.bg_tile_select
-
-        line_adjusted = @window_line
-        y_offset = (line_adjusted / 8) * 32
-        tile_line = line_adjusted % 8
-        tile_line_offset = tile_line * 2
-
-        0.upto(31) do |x|
-          tile = 0
-          if tiles == 0x8800
-            tile = signed_value $mmu.read_byte(map_select + y_offset + x)
-            tile += 128
-          else
-            tile = $mmu.read_byte map_select + y_offset + x
-          end
-
-          line_pixel_offset = x * 8
-          tile_select_offset = tile * 16
-          tile_address = tiles_select + tile_select_offset + tile_line_offset
-
-          byte_1 = $mmu.read_byte tile_address
-          byte_2 = $mmu.read_byte (tile_address + 1)
-
-          0.upto(7) do |pixelx|
-            buffer_addr = line_pixel_offset + pixelx + wx
-
-            next if buffer_addr < 0 || buffer_addr >= SCREEN_WIDTH
-
-            shift 0x1 << (7 - pixelx)
-
-            pixel = 0
-            if (byte_1 & shift == shift) && (byte_2 & shift == shift)
-              pixel = 3
-            elsif (byte_1 & shift == 0x0) && (byte_2 & shift == shift)
-              pixel = 1
-            elsif (byte_1 & shift == shift) && (byte_2 & shift == 0x0)
-              pixel = 2
-            elsif (byte_1 & shift == 0x0) && (byte_2 & shift == 0x00)
-              pixel = 0
-            end
-
-            position = line_width + buffer_addr
-            @framebuffer[position] = pixel
-          end
-        end
-        @window_line += 1
-      end
-
-      def render_sprites
-        line = current_line
-        line_width = line * Screen::SCREEN_WIDTH
-
-        return unless IO::LCDControl.obj_display
-
-        sprite_size = IO::LCDControl.obj_size
-
-        39.downto(0) do |sprite|
-          sprite_offset = sprite * 4
-
-          sprite_y = $mmu.read_byte(0xFE00 + sprite_offset) - 16
-          next if sprite_y > line || (sprite_y + sprite_size) <= line
-
-          sprite_x = $mmu.read_byte(0xFE00 + sprite_offset + 1) - 8
-          next if sprite_x < -7 || sprite_x >= SCREEN_WIDTH
-
-          sprite_tile_offset = ($mmu.read_byte(0xFE00 + sprite_offset + 2) & (sprite_size == 16 ? 0xFE : 0xFF)) * 16
-          sprite_flags = $mmu.read_byte(0xFE00 + sprite_offset + 3)
-          x_flip = sprite_flags & 0x20 == 0x20 ? true : false
-          y_flip = sprite_flags & 0x40 == 0x40 ? true : false
-          #above_bg = sprite_flags & 0x80 == 0x80 ? true : false
-
-          tiles = 0x8000
-          pixel_y = y_flip ? (sprite_size == 16 ? 15 : 7) - (line - sprite_y) : line - sprite_y
-
-          pixel_y_2 = 0
-          offset = 0
-
-          if sprite_size == 16 && (pixel_y >= 8)
-            pixel_y_2 = (pixel_y - 8) * 2
-            offset = 16
-          else
-            pixel_y_2 = pixel_y * 2
-          end
-
-          tile_address = tiles + sprite_tile_offset + pixel_y_2 + offset
-
-          byte_1 = $mmu.read_byte tile_address
-          byte_2 = $mmu.read_byte (tile_address + 1)
-
-          0.upto(7) do |pixelx|
-            shift = 0x1 << (x_flip ? pixelx : 7 - pixelx)
-            pixel = 0
-
-            if (byte_1 & shift == shift) && (byte_2 & shift == shift)
-              pixel = 3
-            elsif (byte_1 & shift == 0x0) && (byte_2 & shift == shift)
-              pixel = 1
-            elsif (byte_1 & shift == shift) && (byte_2 & shift == 0x0)
-              pixel = 2
-            elsif (byte_1 & shift == 0x0) && (byte_2 & shift == 0x00)
-              pixel = 0
-            end
-
-            buffer_x = sprite_x + pixelx
-            next if buffer_x < 0 || buffer_x >= Screen::SCREEN_WIDTH
-
-            position = line_width + buffer_x
-
-            @framebuffer[position] = pixel
-          end
-        end
       end
 
       def render_bg
