@@ -4,6 +4,8 @@ module Waterfoul
   class GPU
     include Helper
 
+    attr_accessor :mode
+    attr_accessor :modeclock
     attr_reader :framebuffer
 
     FRAMEBUFFER_SIZE = (Screen::SCREEN_WIDTH - 1) * (Screen::SCREEN_HEIGHT - 1)
@@ -33,7 +35,7 @@ module Waterfoul
       @lcd_stat = 0
     end
 
-    def step(cycles)
+    def step(cycles = 1)
       # update lcd control
       @vblank = false
       @modeclock += cycles
@@ -163,8 +165,10 @@ module Waterfoul
           @screen_enable_delay_cycles = 244
         end
       end
+    end
 
-      return @vblank
+    def vblank?
+      @vblank
     end
 
     private

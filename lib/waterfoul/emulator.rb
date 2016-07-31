@@ -19,8 +19,8 @@ module Waterfoul
     def run
       loop do
         @cpu.step
-        vblank = @gpu.step(@cpu.m)
-        @screen.render(@gpu.framebuffer) if vblank
+        @gpu.step @cpu.m
+        @screen.render @gpu.framebuffer if @gpu.vblank?
         # @sound.step
       end
     end
