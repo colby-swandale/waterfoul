@@ -6,9 +6,6 @@ module Waterfoul
 
     attr_reader :framebuffer
 
-    SCREEN_WIDTH = 160
-    SCREEN_HEIGHT = 144
-
     FRAMEBUFFER_SIZE = (Screen::SCREEN_WIDTH - 1) * (Screen::SCREEN_HEIGHT - 1)
 
     H_BLANK_STATE     = 0
@@ -192,7 +189,7 @@ module Waterfoul
 
       def render_window
         line = current_line
-        line_width = line * SCREEN_WIDTH
+        line_width = line * Screen::SCREEN_WIDTH
         # dont render if the window is outside the bounds of the screen or
         # if the LCDC window enable bit flag is not set
         return if @window_line > 143 || !IO::LCDControl.window_enabled?
@@ -254,7 +251,7 @@ module Waterfoul
 
       def render_sprites
         line = current_line
-        line_width = line * SCREEN_WIDTH
+        line_width = line * Screen::SCREEN_WIDTH
 
         return unless IO::LCDControl.obj_display
 
@@ -308,7 +305,7 @@ module Waterfoul
             end
 
             buffer_x = sprite_x + pixelx
-            next if buffer_x < 0 || buffer_x >= SCREEN_WIDTH
+            next if buffer_x < 0 || buffer_x >= Screen::SCREEN_WIDTH
 
             position = line_width + buffer_x
 
@@ -319,7 +316,7 @@ module Waterfoul
 
       def render_bg
         line = current_line
-        line_width = line * SCREEN_WIDTH
+        line_width = line * Screen::SCREEN_WIDTH
 
         if IO::LCDControl.bg_display
           # tile and map select
@@ -356,7 +353,7 @@ module Waterfoul
             0.upto(7) do |pixelx|
               buffer_addr = line_pixel_offset + pixelx - scx
 
-              next if buffer_addr >= SCREEN_WIDTH
+              next if buffer_addr >= Screen::SCREEN_WIDTH
 
               pixel = (byte_1 & (0x1 << (7 - pixelx)) > 0) ? 1 : 0
               pixel |= (byte_2 & (0x1 << (7 - pixelx)) > 0) ? 2 : 0
@@ -368,7 +365,7 @@ module Waterfoul
             end
           end
         else
-          0.upto(SCREEN_WIDTH) do |i|
+          0.upto(Screen::SCREEN_WIDTH) do |i|
             @framebuffer[line_width + i] = 0
           end
         end
