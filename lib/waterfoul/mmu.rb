@@ -35,6 +35,8 @@ module Waterfoul
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
       case i
+      when 0xFF00
+        0xFF
       when 0x0000...0x8000 # ROM Bank 0 + n
         if @map_boot_rom && i <= BOOT_ROM_END_MEM_LOC
           BootROM[i]
@@ -48,7 +50,7 @@ module Waterfoul
       when 0xC000...0xE000 # Internal RAM
         @memory[i]
       when 0xE000...0xFE00 # Internal RAM (shadow)
-        @memory[i - 0x1000]
+        @memory[i - 0x2000]
       when 0xFE00..0xFFFF # Graphics (OAM), IO, Zero-page
         @memory[i]
       end
@@ -68,6 +70,7 @@ module Waterfoul
           @map_boot_rom = false if v == 0x1 && @map_boot_rom
         when 0xFF46 # DMA transfer
           dma_transfer v
+          @memory[i] = v
         when 0xFF04 # reset divider register
           @memory[i] = 0
         when 0x0...0x8000 # ROM Bank 0 + n
@@ -79,7 +82,7 @@ module Waterfoul
         when 0xC000...0xE000 # Internal RAM
           @memory[i] = v
         when 0xE000...0xFE00 # Internal RAM (Shadow)
-          @memory[i - 0x1000] = v
+          @memory[i - 0x2000] = v
         when 0xFE00..0xFFFF # Graphics (OAM), IO, Zero Page
           @memory[i] = v
         end
@@ -111,9 +114,11 @@ module Waterfoul
 
     def dma_transfer(start)
       addr = start << 8
-      0.upto(0xA0) do |i|
-        sprite_byte = $mmu.read_byte(addr + i)
-        self[0xFE00 + i] = sprite_byte
+      if addr >= 0x8000 && addr < 0xE000
+        0.upto(0x9F) do |i|
+          sprite_byte = $mmu.read_byte(addr + i)
+          self[0xFE00 + i] = sprite_byte
+        end
       end
     end
   end
