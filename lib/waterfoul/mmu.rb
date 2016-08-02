@@ -35,8 +35,6 @@ module Waterfoul
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
       case i
-      when 0xFF00
-        0xFF
       when 0x0000...0x8000 # ROM Bank 0 + n
         if @map_boot_rom && i <= BOOT_ROM_END_MEM_LOC
           BootROM[i]
@@ -68,6 +66,9 @@ module Waterfoul
         case i
         when UNMAP_BOOT_ROM_MEM_LOC # unmap the boot rom when 0xFF50 is wrtiten to in memory
           @map_boot_rom = false if v == 0x1 && @map_boot_rom
+        when 0xFF00
+          current = self[0xFF00]
+          @memory[0xFF00] = (current & 0xF) | (v & 0x30)
         when 0xFF46 # DMA transfer
           dma_transfer v
           @memory[i] = v

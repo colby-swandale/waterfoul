@@ -1,4 +1,3 @@
-require 'sdl2'
 require 'waterfoul/io/lcd_status'
 
 module Waterfoul
@@ -15,7 +14,6 @@ module Waterfoul
     }
 
     def initialize
-      SDL2.init SDL2::INIT_VIDEO
       @screen = SDL2::Window.create('main', 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0)
       @renderer = @screen.create_renderer 1, 0
       @lcd_status = IO::LCDStatus.new

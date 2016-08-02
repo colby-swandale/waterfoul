@@ -12,6 +12,7 @@ require "waterfoul/screen"
 require "waterfoul/gpu"
 require "waterfoul/cartridge"
 require "waterfoul/emulator"
+require "waterfoul/input"
 require "byebug"
 
 module Waterfoul
