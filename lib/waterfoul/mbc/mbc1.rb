@@ -55,7 +55,7 @@ module Waterfoul
         when 0x6000...0x8000
           @mode = v & 0x1
         when 0xA000...0xC000
-          fail 'trying to write invalid ram' unless @ram_enabled
+          return unless @ram_enabled
           addr = i - 0xA000
           if @mode == 0
             @ram[addr] = v
