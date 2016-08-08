@@ -67,8 +67,7 @@ module Waterfoul
         when UNMAP_BOOT_ROM_MEM_LOC # unmap the boot rom when 0xFF50 is wrtiten to in memory
           @map_boot_rom = false if v == 0x1 && @map_boot_rom
         when 0xFF00
-          current = self[0xFF00]
-          @memory[0xFF00] = (current & 0xF) | (v & 0x30)
+          @memory[i] = v | 0xF
         when 0xFF46 # DMA transfer
           dma_transfer v
           @memory[i] = v
