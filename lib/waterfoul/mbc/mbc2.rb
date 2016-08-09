@@ -1,4 +1,4 @@
-module Waterforul
+module Waterfoul
   module MBC
     class MBC2
     end

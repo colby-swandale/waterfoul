@@ -1,4 +1,4 @@
-module Waterforul
+module Waterfoul
   module MBC
     class MBC5
       def self.[](i)
@@ -11,4 +11,3 @@ module Waterforul
     end
   end
 end
-
