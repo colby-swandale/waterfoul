@@ -156,7 +156,7 @@ module Waterfoul
 
       0.upto(31) do |x|
         tile = 0
-        if tiles == 0x8800
+        if tiles_select == 0x8800
           tile = signed_value $mmu.read_byte(map_select + y_offset + x)
           tile += 128
         else
@@ -171,11 +171,11 @@ module Waterfoul
         byte_2 = $mmu.read_byte (tile_address + 1)
 
         0.upto(7) do |pixelx|
-          buffer_addr = line_pixel_offset + pixelx + wx
+          buffer_addr = line_pixel_offset + pixelx + window_pos_x
 
           next if buffer_addr < 0 || buffer_addr >= SCREEN_WIDTH
 
-          shift 0x1 << (7 - pixelx)
+          shift = 0x1 << (7 - pixelx)
 
           pixel = 0
           if (byte_1 & shift == shift) && (byte_2 & shift == shift)
