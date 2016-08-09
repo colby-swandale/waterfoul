@@ -23,13 +23,16 @@ module Waterfoul
           offset = @rom_bank * 0x4000
           @game_program[offset + addr]
         when 0xA000...0xC000
-          fail 'trying to read invalid ram' unless @ram_enabled
-          addr = i - 0xA000
-          if @mode == 0
-            @ram[addr]
+          if @ram_enabled
+            addr = i - 0xA000
+            if @mode == 0
+              @ram[addr]
+            else
+              offset = @rom_ram_bank_number * 0x8000
+              @ram[offset + addr]
+            end
           else
-            offset = @rom_ram_bank_number * 0x8000
-            @ram[offset + addr]
+            0xFF
           end
         end
       end
