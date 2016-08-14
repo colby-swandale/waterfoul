@@ -14,7 +14,7 @@ module Waterfoul
       cpu = CPU.new
       @cpu = options.has_key?('skip_boot') ? SkipBoot.set_state(cpu) : cpu
       @gpu = GPU.new
-      @input = Input.new
+      # @input = Input.new
       @screen = Screen.new
       # @sound = Sound.new
     end
@@ -24,7 +24,7 @@ module Waterfoul
         @cpu.step
         @gpu.step @cpu.m
         @screen.render @gpu.framebuffer if @gpu.vblank?
-        @input.step @cpu.m
+        # @input.step @cpu.m
         # @sound.step
       end
     end

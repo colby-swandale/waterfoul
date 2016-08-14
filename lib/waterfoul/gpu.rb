@@ -8,7 +8,7 @@ module Waterfoul
     attr_accessor :modeclock
     attr_reader :framebuffer
 
-    FRAMEBUFFER_SIZE = (Screen::SCREEN_WIDTH - 1) * (Screen::SCREEN_HEIGHT - 1)
+    FRAMEBUFFER_SIZE = Screen::SCREEN_WIDTH * Screen::SCREEN_HEIGHT
 
     H_BLANK_STATE     = 0
     V_BLANK_STATE     = 1
@@ -189,7 +189,7 @@ module Waterfoul
           end
 
           position = line_width + buffer_addr
-          @framebuffer[position] = pixel
+          @framebuffer[position] = rgb(pixel)
         end
       end
       @window_line += 1
@@ -255,7 +255,7 @@ module Waterfoul
 
           position = line_width + buffer_x
 
-          @framebuffer[position] = pixel
+          @framebuffer[position] = rgb(pixel)
         end
       end
     end
@@ -307,13 +307,26 @@ module Waterfoul
             palette = $mmu.read_byte 0xFF47
             color = (palette >> (pixel * 2)) & 0x3
 
-            @framebuffer[position] = color
+            @framebuffer[position] = rgb(color)
           end
         end
       else
-        0.upto(Screen::SCREEN_WIDTH) do |i|
+        0.upto(Screen::SCREEN_WIDTH - 1) do |i|
           @framebuffer[line_width + i] = 0
         end
+      end
+    end
+
+    def rgb(color_code)
+      case color_code
+      when 0
+        0xFFFFFFFF
+      when 1
+        0xFFA8A8A8
+      when 2
+        0xFF555555
+      when 3
+        0x00000000
       end
     end
 

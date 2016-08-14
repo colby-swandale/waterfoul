@@ -8,11 +8,12 @@ require "Waterfoul/timer"
 require "waterfoul/cpu"
 require "waterfoul/sound"
 require "waterfoul/errors"
+require "waterfoul/sdl"
 require "waterfoul/screen"
 require "waterfoul/gpu"
 require "waterfoul/cartridge"
 require "waterfoul/emulator"
-require "waterfoul/input"
+# require "waterfoul/input"
 require "byebug"
 
 module Waterfoul

@@ -1,0 +1,31 @@
+require 'ffi'
+
+module Waterfoul
+  module SDL
+    extend FFI::Library
+    ffi_lib "SDL2"
+
+    INIT_TIMER = 0x01
+    INIT_VIDEO = 0x20
+    WINDOW_RESIZABLE = 0x20
+
+    SDL_PIXELFORMAT_ARGB8888 =
+      (1 << 28) |
+      (6 << 24) |
+      (3 << 20) |
+      (6 << 16) |
+      (32 << 8) |
+      (4 << 0)
+
+    attach_function :InitSubSystem, 'SDL_InitSubSystem', [ :uint32 ], :int
+    attach_function :CreateWindow, 'SDL_CreateWindow', [ :string, :int, :int, :int, :int, :uint32 ], :pointer
+    attach_function :CreateRenderer, 'SDL_CreateRenderer', [:pointer, :int, :uint32], :pointer
+    attach_function :CreateTexture, 'SDL_CreateTexture', [:pointer, :uint32, :int, :int, :int], :pointer
+    attach_function :UpdateTexture, 'SDL_UpdateTexture', [:pointer, :pointer, :pointer, :int], :int
+    attach_function :LockTexture, 'SDL_LockTexture', [:pointer, :pointer, :pointer, :int], :int
+    attach_function :UnlockTexture, 'SDL_UnlockTexture', [:pointer], :void
+    attach_function :RenderClear, 'SDL_RenderClear', [:pointer], :int
+    attach_function :RenderCopy, 'SDL_RenderCopy', [:pointer, :pointer, :pointer, :pointer], :int
+    attach_function :RenderPresent, 'SDL_RenderPresent', [:pointer], :int
+  end
+end

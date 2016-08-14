@@ -36,4 +36,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "ruby-sdl2", "~> 0.1.0"
   spec.add_dependency "thor"
+  spec.add_dependency "ffi", "~> 1.9.14"
 end
