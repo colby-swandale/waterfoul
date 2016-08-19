@@ -1,22 +1,18 @@
-require 'sdl2'
-
 module Waterfoul
+  # The Emulator is the abstraction of the emulator as a whole, it initializes
+  # each component and performs the tick.
   class Emulator
     def initialize(rom_filename, options = {})
-      SDL2.init SDL2::INIT_EVERYTHING
-      # read the rom into host memory
-      rom = read_program(rom_filename).bytes
-      # initialize emulated CPU, GPU & Sound components
+      # read the given file as binary and break it down into an array of bytes
+      rom = File.binread(rom_filename).bytes
+      # initialize emulated CPU, GPU & Scren components
       cartridge = Cartridge.new rom
-      # initialize emulated memory management unit
       $mmu = MMU.new
-      $mmu.cartridge = cartridge
-      cpu = CPU.new
-      @cpu = options.has_key?('skip_boot') ? SkipBoot.set_state(cpu) : cpu
+      @cpu = CPU.new
+      @cpu = SkipBoot.set_state(@cpu) if options.has_key?('skip_boot')
       @gpu = GPU.new
       # @input = Input.new
       @screen = Screen.new
-      # @sound = Sound.new
     end
 
     def run
@@ -25,14 +21,7 @@ module Waterfoul
         @gpu.step @cpu.m
         @screen.render @gpu.framebuffer if @gpu.vblank?
         # @input.step @cpu.m
-        # @sound.step
       end
-    end
-
-    private
-
-    def read_program(rom)
-      File.binread rom
     end
   end
 end

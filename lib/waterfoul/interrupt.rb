@@ -12,6 +12,7 @@ module Waterfoul
     INTERRUPT_SERIAL  = 0x8
     INTERRUPT_JOYPAD  = 0x10
 
+    #
     def self.request_interrupt(interrupt)
       if_reg = $mmu.read_byte IF_REG_MEM_LOC
       $mmu.write_byte IF_REG_MEM_LOC, (if_reg | interrupt)

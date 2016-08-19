@@ -1,5 +1,6 @@
 module Waterfoul
   module Helper
+
     def pop_from_stack(word = true)
       if word
         lower = $mmu.read_byte @sp

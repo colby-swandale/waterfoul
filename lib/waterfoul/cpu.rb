@@ -9,8 +9,8 @@ require 'waterfoul/instructions/shift'
 require 'waterfoul/instructions/prefix'
 
 module Waterfoul
-  # These constants represent each state in the F register and are used as a helper to
-  # reference the state when setting/resetting a state bit. Any combination of these
+  # These constants represent status bit in the F register. These are used as a
+  # helper when setting/resetting a state bit. Any combination of these
   # states can be set at any one time.
   #
   # Z_FLAG: Zero Flag
@@ -18,25 +18,20 @@ module Waterfoul
   # H_FLAG: half carry flag
   # C_FLAG: Carry Flag
   # BIT 0-3 Always 0 and not used
-  #
   Z_FLAG = 0b1000_0000
   N_FLAG = 0b0100_0000
   H_FLAG = 0b0010_0000
   C_FLAG = 0b0001_0000
 
-  # number of cycles a HALT will puase program execution for
-  HALT_CYCLES = 6
-
-  ##
-  # The CPU emulates the Sharp LR35902 CPU that is built into the device, similar to the
-  # Intel 8080 and Zilog Z80 processor. Each instruction is categorized
-  # into a subset of instructions by the type of action performed by the instruction.
+  # The CPU emulates the Sharp LR35902 CPU that is built into the device,
+  # similar to the Intel 8080 and Zilog Z80 processor. Each instruction
+  # is categorized into a subset of instructions by the type of action
+  # performed by the instruction.
   #
-  # See lib/instuctions/ for the implementation for the CPU instruction set.
+  # See lib/instuctions for the implementation for the CPU instruction set.
   #
   # I recommend looking at http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html for an
   # easy to understand chart for each instruction.
-  #
   class CPU
     include Helper
     include Instructions::Opcode
@@ -51,7 +46,7 @@ module Waterfoul
 
     # 8 bit registers
     attr_reader :a, :b, :c, :d, :e, :f, :h, :l, :f
-    # 8 CPU clock
+    # CPU cycle count
     attr_reader :m
     # 16 bit registers
     attr_reader :sp, :pc
@@ -89,10 +84,10 @@ module Waterfoul
     end
 
     def halted?
-      @halt == true
+      @halt
     end
 
-    # Execute the instruction and 
+    # Execute the instruction and
     def perform_instruction(instruction)
       operation = OPCODE[instruction]
       raise 'instruction not found' if operation.nil?
@@ -103,7 +98,7 @@ module Waterfoul
 
     # fetch the next byte to be executed from memory and increment the program
     # counter (except under particular circumstances, see interrupts)
-    def fetch_instruction(increment_pc = false)
+    def fetch_instruction(no_increment_pc = false)
       instruction_byte = $mmu.read_byte @pc
       @pc = (@pc + 1) & 0xFFFF unless increment_pc
       instruction_byte

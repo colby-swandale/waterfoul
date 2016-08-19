@@ -51,7 +51,6 @@ module Waterfoul
 
 
     # Read bootstrap instruction given an index (memory location)
-    # @return Integer - instruction or immediate value
     def self.[](i)
       ROM[i]
     end

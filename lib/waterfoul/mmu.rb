@@ -7,12 +7,11 @@ module Waterfoul
   # does not implement any IO instructions.
   class MMU
     MEMORY_SIZE = 65536 # bytes
-    # location in memory that when written to will unmap the boot rom from
-    # memory
+    # unmap boot rom register address
     UNMAP_BOOT_ROM_MEM_LOC = 0xFF50
     # location in memory where the boot rom ends
     BOOT_ROM_END_MEM_LOC = 0xFF
-    # location in memory where DMA transfer is init
+    # DMA register function address
     DMA_TRANSFER_MEM_LOC = 0xFF46
     # DIV register memory location
     DIV_MEM_LOC = 0xFF04
@@ -23,19 +22,19 @@ module Waterfoul
     # Set the initial state the memory management unit when program starts
     def initialize
       @cartridge = []
-      # flag to indicate if the boot rom is mapped to memory
+      # map the boot rom by default
       @map_boot_rom = true
       # storage for usable memory (zero filled)
       @memory = Array.new MEMORY_SIZE, 0
     end
 
     # Read 1 byte from memory given address
-    # @param i Integer location in memory to read value
     def [](i)
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
       case i
       when 0x0000...0x8000 # ROM Bank 0 + n
+        # if the boot rom is enabled and the address is < 0x100
         if @map_boot_rom && i <= BOOT_ROM_END_MEM_LOC
           BootROM[i]
         else
@@ -54,14 +53,12 @@ module Waterfoul
       end
     end
 
-    ##
-    # Storage 1 byte into memory given address
-    # @param i Integer location in memory to storage value
-    # @param v Integer value to be written into memory
+    # Write 1 byte into memory
     def []=(i, v, options = {})
       # raise exception if an attempt is made to read memory that is out of bounds
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
-
+      # ignore memory rules if emulated hardware components need to write to
+      # memory
       unless options[:hardware_operation]
         case i
         when UNMAP_BOOT_ROM_MEM_LOC # unmap the boot rom when 0xFF50 is wrtiten to in memory
