@@ -1,6 +1,15 @@
 # Waterfoul
-Waterfoul is a Gameboy emulator written in Ruby-lang. It is just a casual excersize by myself to learn the internals
+Waterfoul is a Gameboy emulator written in Ruby-lang. It is a casual excersize by myself to learn the internals
 of the device and how it works.
+
+## Getting Started
+To start the emulator:
+
+`bundle exec exe/waterfoul start <path to rom>`
+
+Make sure to `bundle install` first and install required libraries.
+
+By default the emulator will run the boot rom, if you wish to skip it then add `--skip-boot` as an option.
 
 ## Requirements
 The [sdl2](https://www.libsdl.org/download-2.0.php) library is currenty used to render pixels. Most platforms have packages avaliable, else see [here](https://wiki.libsdl.org/Installation). This library is required and needs to be installed before you can run the emulator.
@@ -15,11 +24,3 @@ The following shows the mapped keys to control the game.
 ## Testing
 If you wish to run the test suite, download the source code (make sure to run `bundle install`) and run `bundle exec rspec`
 
-## How do i run the emulator?
-If you wish to see the emulator in action, download a rom online which typically have a .gb extension and place it onto your local file system. To start the emulator:
-
-`bundle exec exe/waterfoul start <path to rom>`
-
-Make sure to bundle install first.
-
-The boot program will be executed by default, if you wish to skip it add `--skip-boot` as an option.
