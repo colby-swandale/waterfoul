@@ -7,6 +7,7 @@ module Waterfoul
 
     INIT_TIMER = 0x01
     INIT_VIDEO = 0x20
+    INIT_KEYBOARD = 0x200
     WINDOW_RESIZABLE = 0x20
 
     SDL_PIXELFORMAT_ARGB8888 =
@@ -16,6 +17,15 @@ module Waterfoul
       (6 << 16) |
       (32 << 8) |
       (4 << 0)
+    # keyboard key maps
+    SDL_SCANCODE_RETURN = 40 # start
+    SDL_SCANCODE_RSHIFT = 229 # select
+    SDL_SCANCODE_RIGHT = 79
+    SDL_SCANCODE_LEFT = 80
+    SDL_SCANCODE_DOWN = 81
+    SDL_SCANCODE_UP = 82
+    SDL_SCANCODE_A = 4 # A
+    SDL_SCANCODE_Z = 29 # B
 
     attach_function :InitSubSystem, 'SDL_InitSubSystem', [ :uint32 ], :int
     attach_function :CreateWindow, 'SDL_CreateWindow', [ :string, :int, :int, :int, :int, :uint32 ], :pointer
@@ -27,5 +37,7 @@ module Waterfoul
     attach_function :RenderClear, 'SDL_RenderClear', [:pointer], :int
     attach_function :RenderCopy, 'SDL_RenderCopy', [:pointer, :pointer, :pointer, :pointer], :int
     attach_function :RenderPresent, 'SDL_RenderPresent', [:pointer], :int
+    attach_function :PumpEvents, 'SDL_PumpEvents', [], :void
+    attach_function :GetKeyboardState, 'SDL_GetKeyboardState', [:pointer], :pointer
   end
 end

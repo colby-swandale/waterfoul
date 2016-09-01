@@ -1,5 +1,3 @@
-require 'sdl2'
-
 module Waterfoul
   class Input
 
@@ -13,54 +11,37 @@ module Waterfoul
     SELECT_INPUT_KEYCODE = 229
     POLL_RATE = 5000
 
-    def initialize
-      @modeclock = 0
-      @current_keys = 0
-      $mmu.write_byte 0xFF00, 0xFF, hardware_operation: true
-    end
+    SDL.InitSubSystem(SDL::INIT_KEYBOARD)
 
-    def step(cycles = 1)
-      @modeclock += cycles
-      event = SDL2::Event.poll
+    def self.read_keyboard(joyp)
+      SDL.PumpEvents # update keyboard state
+      keyboard = SDL.GetKeyboardState(nil)
+      keyboard_state = keyboard.read_array_of_uint8(229)
 
-      if @modeclock >= POLL_RATE
-        @modeclock -= POLL_RATE
-
-        input = $mmu.read_byte 0xFF00
-
-        if input & 0x10 == 0x00
-          case @current_key
-          when UP_INPUT_KEYCODE
-            input ^= 0x4
-          when DOWN_INPUT_KEYCODE
-            input ^= 0x8
-          when RIGHT_INPUT_KEYCODE
-            input ^= 0x1
-          when LEFT_INPUT_KEYCODE
-            input ^= 0x2
-          end
-          @current_key = 0
-          $mmu.write_byte 0xFF0F, input
-          Interrupt.request_interrupt(Interrupt::INTERRUPT_JOYPAD)
-        elsif input & 0x20 == 0x0
-          case @current_key
-          when A_INPUT_KEYCODE
-            input ^= 0x1
-          when B_INPUT_KEYCODE
-            input ^= 0x2
-          when START_INPUT_KEYCODE
-            input ^= 0x8
-          when SELECT_INPUT_KEYCODE
-            input ^= 0x4
-          end
-          @current_key = 0
-          $mmu.write_byte 0xFF0F, input
-          Interrupt.request_interrupt(Interrupt::INTERRUPT_JOYPAD)
+      input = 0xF
+      if joyp & 0x20 == 0x00
+        if keyboard_state[SDL::SDL_SCANCODE_RETURN] == 1
+          input ^= 0x8
+        elsif keyboard_state[SDL::SDL_SCANCODE_RSHIFT] == 1
+          input ^= 0x4
+        elsif keyboard_state[SDL::SDL_SCANCODE_A] == 1
+          input ^= 0x1
+        elsif keyboard_state[SDL::SDL_SCANCODE_Z] == 1
+          input ^= 0x2
         end
-      elsif event.kind_of?(SDL2::Event::KeyDown)
-        @current_key = event.scancode
-        p @current_key
+      elsif joyp & 0x10 == 0x0
+        if keyboard_state[SDL::SDL_SCANCODE_UP] == 1
+          input ^= 0x4
+        elsif keyboard_state[SDL::SDL_SCANCODE_DOWN] == 1
+          input ^= 0x8
+        elsif keyboard_state[SDL::SDL_SCANCODE_LEFT] == 1
+          input ^= 0x2
+        elsif keyboard_state[SDL::SDL_SCANCODE_RIGHT] == 1
+          input ^= 0x1
+        end
       end
+
+      (0xF0 & joyp) | input
     end
   end
 end

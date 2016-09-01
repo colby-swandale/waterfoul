@@ -33,6 +33,8 @@ module Waterfoul
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
       case i
+      when 0xFF00
+        Input.read_keyboard @memory[i]
       when 0x0000...0x8000 # ROM Bank 0 + n
         # if the boot rom is enabled and the address is < 0x100
         if @map_boot_rom && i <= BOOT_ROM_END_MEM_LOC
