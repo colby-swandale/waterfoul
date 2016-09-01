@@ -9,7 +9,7 @@ module Waterfoul
       @buffer = FFI::MemoryPointer.new :uint32, SCREEN_WIDTH * SCREEN_HEIGHT
       @window = SDL.CreateWindow 'waterfoul', 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0
       @renderer = SDL.CreateRenderer @window, -1, 0
-      @texture = SDL.CreateTexture @renderer, SDL::SDL_PIXELFORMAT_ARGB8888, 1, SCREEN_WIDTH, SCREEN_HEIGHT
+      @texture = SDL.CreateTexture @renderer, SDL::PIXELFORMAT_ARGB8888, 1, SCREEN_WIDTH, SCREEN_HEIGHT
     end
 
     def render(framebuffer)

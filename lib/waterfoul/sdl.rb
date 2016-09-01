@@ -9,14 +9,8 @@ module Waterfoul
     INIT_VIDEO = 0x20
     INIT_KEYBOARD = 0x200
     WINDOW_RESIZABLE = 0x20
+    PIXELFORMAT_ARGB8888 = 0x16362004
 
-    SDL_PIXELFORMAT_ARGB8888 =
-      (1 << 28) |
-      (6 << 24) |
-      (3 << 20) |
-      (6 << 16) |
-      (32 << 8) |
-      (4 << 0)
     # keyboard key maps
     SDL_SCANCODE_RETURN = 40 # start
     SDL_SCANCODE_RSHIFT = 229 # select

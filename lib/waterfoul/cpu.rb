@@ -100,7 +100,7 @@ module Waterfoul
     # counter (except under particular circumstances, see interrupts)
     def fetch_instruction(no_increment_pc = false)
       instruction_byte = $mmu.read_byte @pc
-      @pc = (@pc + 1) & 0xFFFF unless increment_pc
+      @pc = (@pc + 1) & 0xFFFF unless no_increment_pc
       instruction_byte
     end
 
