@@ -10,6 +10,7 @@ module Waterfoul
     INIT_KEYBOARD = 0x200
     WINDOW_RESIZABLE = 0x20
     PIXELFORMAT_ARGB8888 = 0x16362004
+    SDL_WINDOW_RESIZABLE = 0x20
 
     # keyboard key maps
     SDL_SCANCODE_RETURN = 40 # start
@@ -33,5 +34,7 @@ module Waterfoul
     attach_function :RenderPresent, 'SDL_RenderPresent', [:pointer], :int
     attach_function :PumpEvents, 'SDL_PumpEvents', [], :void
     attach_function :GetKeyboardState, 'SDL_GetKeyboardState', [:pointer], :pointer
+    attach_function :SetHint, 'SDL_SetHint', [:string, :string], :int
+    attach_function :RenderSetLogicalSize, 'SDL_RenderSetLogicalSize', [:pointer, :int, :int], :int
   end
 end
