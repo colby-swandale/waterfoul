@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "waterfoul"
   spec.version       = Waterfoul::VERSION
   spec.authors       = ["Colby Swandale"]
-  spec.email         = ["colby@taplaboratories.com.au"]
+  spec.email         = ["colby@taplaboratories.com"]
 
-  spec.summary       = ""
+  spec.summary       = "Gameboy emulator written in Ruby-lang"
   spec.description   = ""
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "https://github.com/colby-swandale/waterfoul"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
   # delete this section to allow pushing this gem to any host.
@@ -29,12 +29,10 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.10"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec"
-  spec.add_development_dependency "rspec-mocks"
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "guard"
   spec.add_development_dependency "guard-rspec"
 
-  spec.add_dependency "ruby-sdl2", "~> 0.1.0"
   spec.add_dependency "thor"
   spec.add_dependency "ffi", "~> 1.9.14"
 end
