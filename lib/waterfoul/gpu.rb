@@ -173,7 +173,7 @@ module Waterfoul
         0.upto(7) do |pixelx|
           buffer_addr = line_pixel_offset + pixelx + window_pos_x
 
-          next if buffer_addr < 0 || buffer_addr >= SCREEN_WIDTH
+          next if buffer_addr < 0 || buffer_addr >= Sreen::SCREEN_WIDTH
 
           shift = 0x1 << (7 - pixelx)
 
@@ -210,7 +210,7 @@ module Waterfoul
         next if sprite_y > line || (sprite_y + sprite_size) <= line
 
         sprite_x = $mmu.read_byte(0xFE00 + sprite_offset + 1) - 8
-        next if sprite_x < -7 || sprite_x >= SCREEN_WIDTH
+        next if sprite_x < -7 || sprite_x >= Screen::SCREEN_WIDTH
 
         sprite_tile_offset = ($mmu.read_byte(0xFE00 + sprite_offset + 2) & (sprite_size == 16 ? 0xFE : 0xFF)) * 16
         sprite_flags = $mmu.read_byte(0xFE00 + sprite_offset + 3)
