@@ -41,12 +41,12 @@ describe Waterfoul::MMU do
 
   describe '#read_word' do
     before do
-      subject.write_byte 0xFFFF, 0x1
-      subject.write_byte 0xFFFE, 0x1
+      subject.write_byte 0xC001, 0x1
+      subject.write_byte 0xC000, 0x1
     end
 
     it 'reads two bytes from memory into a word' do
-      expect(subject.read_word(0xFFFE)).to eq 0x2
+      expect(subject.read_word(0xC000)).to eq 0x101
     end
   end
 
@@ -56,9 +56,5 @@ describe Waterfoul::MMU do
       expect(subject[0xFF40]).to eq 0xAA
       expect(subject[0xFF41]).to eq 0xFF
     end
-  end
-
-  context 'DMA transfer' do
-
   end
 end
