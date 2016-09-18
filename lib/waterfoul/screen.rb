@@ -1,6 +1,5 @@
 module Waterfoul
   class Screen
-
     WINDOW_WIDTH = 480
     WINDOW_HEIGHT = 432
 

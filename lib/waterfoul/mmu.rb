@@ -1,10 +1,12 @@
 require 'waterfoul/boot_rom'
 
 module Waterfoul
-  # The MMU (Memory Management Unit) in a chip in the device that acts a switch.
-  # It allows programs to interact with subsytems like the GPU and IO depending
-  # on the location in memory when reading from or writing to seeing the CPU
-  # does not implement any IO instructions.
+  # The MMU (Memory Management Unit) in a chip in the device that is the
+  # interface to hardware for reading and writing to memory.
+  #
+  # The MMU also provides the program a way to interact with hardware
+  # like the PPU and IO using memory registers. This is due to the CPU
+  # not having any IO instructions.
   class MMU
     MEMORY_SIZE = 65536 # bytes
     # unmap boot rom register address
