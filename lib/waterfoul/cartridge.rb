@@ -32,14 +32,12 @@ module Waterfoul
     private
 
     # initialize the memory bank controller given the game program and the controller type
-    # @return MBC::ROM|MBC* - return iniitalized cartridge controller with game program loaded
     def cartrdige_controller type, rom
       controller_const(type).new rom
     end
 
     # return the class constant that implements the behavior of the memory bank controller
     # declared by the game cartridge
-    # @return Constant - memory bank controller class constant
     def controller_const(type_byte)
       case type_byte
       when 0x00, 0x8, 0x9

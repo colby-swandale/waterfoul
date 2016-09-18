@@ -93,17 +93,12 @@ module Waterfoul
     alias_method :write_byte, :[]=
     alias_method :read_byte, :[]
 
-    ##
-    # Read 2 bytes from memory
-    # @param addr Integer
+    # read 2 bytes from memory
     def read_word(addr)
-      self[addr] + (self[addr + 1] << 8)
+      self[addr] | (self[addr + 1] << 8)
     end
 
-    ##
     # write 2 bytes into memory given an address
-    # @param addr Integer point in memory to save word
-    # @param word Integer 2 byte value to be stored into memory
     def write_word(addr, word)
       write_byte addr, ( word & 0xFF )
       write_byte addr + 1, ( word >> 8 )

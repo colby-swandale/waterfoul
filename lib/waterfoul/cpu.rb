@@ -9,25 +9,23 @@ require 'waterfoul/instructions/shift'
 require 'waterfoul/instructions/prefix'
 
 module Waterfoul
-  # These constants represent status bit in the F register. These are used as a
-  # helper when setting/resetting a state bit. Any combination of these
-  # states can be set at any one time.
+  # These constants represent each status bit in the F register.
   #
   # Z_FLAG: Zero Flag
   # N_FLAG: Subtract Flag
   # H_FLAG: half carry flag
   # C_FLAG: Carry Flag
-  # BIT 0-3 Always 0 and not used
+  # BIT 0-3 Not Used
   Z_FLAG = 0b1000_0000
   N_FLAG = 0b0100_0000
   H_FLAG = 0b0010_0000
   C_FLAG = 0b0001_0000
 
   # The CPU emulates the Sharp LR35902 CPU that is built into the device,
-  # similar to the Intel 8080 and Zilog Z80 processor. Each instruction
-  # is categorized into a subset of instructions by the type of action
-  # performed by the instruction.
+  # similar to the Intel 8080 and Zilog Z80 processor.
   #
+  # Each instruction is categorized into a subset of instructions by the type of action
+  # performed by the instruction.
   # See lib/instuctions for the implementation for the CPU instruction set.
   #
   # I recommend looking at http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html for an
@@ -46,7 +44,7 @@ module Waterfoul
 
     # 8 bit registers
     attr_reader :a, :b, :c, :d, :e, :f, :h, :l, :f
-    # CPU cycle count
+    # CPU instruction cycle count
     attr_reader :m
     # 16 bit registers
     attr_reader :sp, :pc
@@ -87,7 +85,8 @@ module Waterfoul
       @halt
     end
 
-    # Execute the instruction and
+    # execute teh instruction needed to be be perforemd by using
+    # a lookup value for the opcode table 
     def perform_instruction(instruction)
       operation = OPCODE[instruction]
       raise 'instruction not found' if operation.nil?
@@ -106,8 +105,8 @@ module Waterfoul
 
     private
 
-    # get the number of cycles a instruction takes to execute. The times
-    # can be found in the instruction opcode table
+    # get the number of cycles a instruction takes to execute. The timing
+    # for each instruction can be found in the OPCODE table (see link above)
     def instruction_cycle_time(instruction)
       if @prefix_cb
         CB_OPCODE_TIMINGS[@prefix_cb]
@@ -118,6 +117,7 @@ module Waterfoul
       end
     end
 
+    # perform any interrupts are enabled and have been requested by the program
     def serve_interrupt
       interrupt = Interrupt.pending_interrupt
       # skip if there is no interrupt to serve
@@ -146,7 +146,7 @@ module Waterfoul
       @m = 20
     end
 
-    # reset variables that are set on every instruction
+    # reset per instruction variables
     def reset_tick
       @prefix_cb = false
       @branched = false

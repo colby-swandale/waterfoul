@@ -14,13 +14,8 @@ require "waterfoul/gpu"
 require "waterfoul/cartridge"
 require "waterfoul/emulator"
 require "waterfoul/input"
-require "byebug"
 
 module Waterfoul
-  # height/width of the device screen in pixels
-  SCREEN_WIDTH = 160
-  SCREEN_HEIGHT = 144
-
   BIT_0  = 0b0000_0001
   BIT_1  = 0b0000_0010
   BIT_2  = 0b0000_0100
