@@ -247,7 +247,7 @@ module Waterfoul
           elsif (byte_1 & shift == shift) && (byte_2 & shift == 0x0)
             pixel = 2
           elsif (byte_1 & shift == 0x0) && (byte_2 & shift == 0x00)
-            pixel = 0
+            next
           end
 
           buffer_x = sprite_x + pixelx
