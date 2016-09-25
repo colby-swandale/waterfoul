@@ -37,33 +37,25 @@ describe Waterfoul::CPU do
   end
 
   describe '#step' do
-    context 'when instruction is NOP' do
-      before { expect($mmu).to receive(:read_byte).and_return 0x00 }
-      it 'increments the program counter each step' do
-        expect { subject.step }.to change { subject.pc }.by 1
-      end
+    before { subject.set_register :pc, 0x101 }
+
+    it 'increments the program counter' do
+      subject.step
+      expect(subject.pc).to eq 0x102
     end
 
-    context 'when instruction is RRCA' do
-      before { expect($mmu).to receive(:read_byte).and_return 0x0F }
+    context 'when the CPU is halted' do
+      before { subject.halt }
 
-      it 'calls next instruction' do
-        expect(subject).to receive(:rrca)
+      it 'does not increment the PC' do
         subject.step
+        expect(subject.pc).to eq 0x101
       end
     end
-  end
 
-  describe '#pending_interupt' do
-
-  end
-
-  describe 'halt' do
-    before { subject.halt }
-    context 'without any interupts pending' do
-    end
-
-    context 'with interupts pending' do
+    it 'sets the instruction cycle time' do
+      subject.step
+      expect(subject.m).to eq 4
     end
   end
 end
