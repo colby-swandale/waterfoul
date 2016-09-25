@@ -1,25 +1,37 @@
 require 'spec_helper'
-require 'byebug'
 describe Waterfoul::CPU do
   before { $mmu = Waterfoul::MMU.new }
   subject { Waterfoul::CPU.new }
 
   describe '#serve_interrupt' do
-    before { $mmu[0x0] = 0x0 } # NOP Instruction
-    before { $mmu[0xFFFF] = 0xFF } # Enable All Interrupts
-
-    context 'when timer interrupt' do
-      before { $Mmu[0xFF06] = 0x4 }
-    end
+    before { subject.ei } # master interrupt enable
+    before { $mmu.write_byte 0xFFFF, 0xFF } # enable all interrupts
+    before { subject.set_register :sp, 0xFFFE }
+    before { subject.set_register :pc, 0x101 }
 
     context 'when no interrupt to serve' do
-      it 'does not move the program counter' do
+      it 'does alter the execution path' do
         subject.step
-        expect(subject.pc).to eq 0x1
+        expect(subject.pc).to eq 0x102
       end
 
-      it 'does not push onto the stack' do
-        expect { subject.step }.to_not change { subject.sp }
+      it 'does not push anything onto the stack' do
+        subject.step
+        expect(subject.sp).to eq 0xFFFE
+      end
+    end
+
+    context 'when timer interrupt is served' do
+      before { $mmu.write_byte 0xFF0F, 0x4 } # request timer interrupt
+
+      it 'sets the program counter to 0x50' do
+        subject.step
+        expect(subject.pc).to eq 0x50
+      end
+
+      it 'saves the current program counter onto the stack' do
+        subject.step
+        expect($mmu.read_word(0xFFFC)).to eq 0x101
       end
     end
   end

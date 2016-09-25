@@ -66,9 +66,11 @@ module Waterfoul
     # This processes repeats infinitly until the process is closed
     def step
       reset_tick
-      serve_interrupt if @ime
       check_halt if @halt
-      if halted?
+      if @ime && serve_interrupt
+        instruction_byte = fetch_instruction true
+        perform_instruction instruction_byte
+      elsif halted?
         @m = 4
       else
         instruction_byte = fetch_instruction
@@ -86,7 +88,7 @@ module Waterfoul
     end
 
     # execute teh instruction needed to be be perforemd by using
-    # a lookup value for the opcode table 
+    # a lookup value for the opcode table
     def perform_instruction(instruction)
       operation = OPCODE[instruction]
       raise 'instruction not found' if operation.nil?
@@ -121,7 +123,7 @@ module Waterfoul
     def serve_interrupt
       interrupt = Interrupt.pending_interrupt
       # skip if there is no interrupt to serve
-      return if interrupt == Interrupt::INTERRUPT_NONE
+      return false if interrupt == Interrupt::INTERRUPT_NONE
       # master disable interrupts
       @ime = false
       push_onto_stack @pc

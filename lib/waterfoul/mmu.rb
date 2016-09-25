@@ -21,10 +21,9 @@ module Waterfoul
     attr_reader :memory
     attr_accessor :cartridge
 
-    # Set the initial state the memory management unit when program starts
     def initialize
-      @cartridge = []
-      # map the boot rom by default
+      @cartridge = Array.new 0x8000, 0
+      # map the boot rom when the device starts
       @map_boot_rom = true
       # storage for usable memory (zero filled)
       @memory = Array.new MEMORY_SIZE, 0
