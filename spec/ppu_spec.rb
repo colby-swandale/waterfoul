@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Waterfoul::GPU do
+describe Waterfoul::PPU do
   before { $mmu = Waterfoul::MMU.new }
-  subject { described_class.new }
+  subject { Waterfoul::PPU.new }
 
   # enable screen for all specs
   before { $mmu.write_byte 0xFF40, 0x80 }
@@ -14,8 +14,8 @@ describe Waterfoul::GPU do
   end
 
   describe 'vram' do
-    before { subject.mode = Waterfoul::GPU::VRAM_SCANLINE_TIME }
-    before { subject.modeclock = Waterfoul::GPU::VRAM_SCANLINE_TIME }
+    before { subject.mode = Waterfoul::PPU::VRAM_SCANLINE_TIME }
+    before { subject.modeclock = Waterfoul::PPU::VRAM_SCANLINE_TIME }
 
     it 'updates STAT register with HBLANK mode' do
       subject.step
@@ -25,12 +25,12 @@ describe Waterfoul::GPU do
   end
 
   describe 'oam' do
-    before { subject.mode = Waterfoul::GPU::OAM_READ_STATE }
-    before { subject.modeclock = Waterfoul::GPU::OAM_SCANLINE_TIME }
+    before { subject.mode = Waterfoul::PPU::OAM_READ_STATE }
+    before { subject.modeclock = Waterfoul::PPU::OAM_SCANLINE_TIME }
 
     it 'sets mode to vram' do
       subject.step
-      expect(subject.mode).to eq Waterfoul::GPU::VMRAM_READ_STATE
+      expect(subject.mode).to eq Waterfoul::PPU::VMRAM_READ_STATE
     end
 
     it 'updates STAT register with VRAM mode' do
@@ -41,8 +41,8 @@ describe Waterfoul::GPU do
   end
 
   describe 'hblank' do
-    before { subject.mode = Waterfoul::GPU::H_BLANK_STATE }
-    before { subject.modeclock = Waterfoul::GPU::H_BLANK_TIME }
+    before { subject.mode = Waterfoul::PPU::H_BLANK_STATE }
+    before { subject.modeclock = Waterfoul::PPU::H_BLANK_TIME }
 
     it 'sets the new line' do
       subject.step
@@ -59,7 +59,7 @@ describe Waterfoul::GPU do
       before { $mmu.write_byte 0xFF44, 143 }
       it 'changes to VBLANK mode' do
         subject.step
-        expect(subject.mode).to eq Waterfoul::GPU::V_BLANK_STATE
+        expect(subject.mode).to eq Waterfoul::PPU::V_BLANK_STATE
       end
 
       it 'performs a VBLANK interrupt' do
