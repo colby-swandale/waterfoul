@@ -1,7 +1,7 @@
 require 'waterfoul/io/lcd_control'
 
 module Waterfoul
-  class GPU
+  class PPU
     include Helper
 
     attr_accessor :mode

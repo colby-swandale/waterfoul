@@ -10,7 +10,7 @@ module Waterfoul
       @cartridge = Cartridge.new rom
       @cpu = CPU.new
       @cpu = SkipBoot.set_state(@cpu) if options.has_key?('skip_boot')
-      @gpu = GPU.new
+      @ppu = PPU.new
       @screen = Screen.new
     end
 
@@ -18,8 +18,8 @@ module Waterfoul
       $mmu.cartridge = @cartridge
       loop do
         @cpu.step
-        @gpu.step @cpu.m
-        @screen.render @gpu.framebuffer if @gpu.vblank?
+        @ppu.step @cpu.m
+        @screen.render @ppu.framebuffer if @ppu.vblank?
       end
     end
   end

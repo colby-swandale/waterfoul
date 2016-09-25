@@ -1,14 +1,10 @@
 module Waterfoul
   module Helper
-
     def pop_from_stack(word = true)
       if word
-        lower = $mmu.read_byte @sp
-        @sp += 1
-        upper = $mmu.read_byte @sp
-        @sp += 1
-
-        (upper << 8) | lower
+        val = $mmu.read_word @sp
+        @sp += 2
+        val
       else
         val = $mmu.read_byte @sp
         @sp += 1
