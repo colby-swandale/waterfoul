@@ -26,7 +26,7 @@ describe Waterfoul::CPU do
 
       it 'sets the program counter to 0x50' do
         subject.step
-        expect(subject.pc).to eq 0x50
+        expect(subject.pc).to eq 0x51
       end
 
       it 'saves the current program counter onto the stack' do

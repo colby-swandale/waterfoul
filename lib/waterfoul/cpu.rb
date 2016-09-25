@@ -67,10 +67,8 @@ module Waterfoul
     def step
       reset_tick
       check_halt if @halt
-      if @ime && serve_interrupt
-        instruction_byte = fetch_instruction true
-        perform_instruction instruction_byte
-      elsif halted?
+      serve_interrupt if @ime
+      if halted?
         @m = 4
       else
         instruction_byte = fetch_instruction
@@ -99,9 +97,9 @@ module Waterfoul
 
     # fetch the next byte to be executed from memory and increment the program
     # counter (except under particular circumstances, see interrupts)
-    def fetch_instruction(no_increment_pc = false)
+    def fetch_instruction
       instruction_byte = $mmu.read_byte @pc
-      @pc = (@pc + 1) & 0xFFFF unless no_increment_pc
+      @pc = (@pc + 1) & 0xFFFF
       instruction_byte
     end
 
