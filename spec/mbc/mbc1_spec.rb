@@ -64,8 +64,9 @@ describe Waterfoul::MBC::MBC1 do
       end
 
       context 'when ram is disabled' do
-        it 'raises an error' do
-          expect { subject[0xA001] = 0x1 }.to raise_error RuntimeError
+        it 'does not store value into ram' do
+          subject[0xA001] = 0x1
+          expect(subject[0xA001]).to eq 0xFF
         end
       end
     end
