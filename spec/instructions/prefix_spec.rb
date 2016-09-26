@@ -1,10 +1,6 @@
 require 'spec_helper'
 
 describe Waterfoul::CPU do
-  before do
-    $mmu = double :mmu
-  end
-
   subject { Waterfoul::CPU.new }
 
   # SWAP n
