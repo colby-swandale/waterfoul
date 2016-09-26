@@ -85,7 +85,7 @@ module Waterfoul
       @halt
     end
 
-    # execute teh instruction needed to be be perforemd by using
+    # execute the instruction needed to be perforemd by using
     # a lookup value for the opcode table
     def perform_instruction(instruction)
       operation = OPCODE[instruction]
@@ -96,7 +96,7 @@ module Waterfoul
     end
 
     # fetch the next byte to be executed from memory and increment the program
-    # counter (except under particular circumstances, see interrupts)
+    # counter
     def fetch_instruction
       instruction_byte = $mmu.read_byte @pc
       @pc = (@pc + 1) & 0xFFFF
