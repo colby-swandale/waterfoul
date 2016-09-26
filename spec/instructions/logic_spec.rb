@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 describe Waterfoul::CPU do
+  before { $mmu = Waterfoul::MMU.new }
   subject { Waterfoul::CPU.new }
-  before :each do
-    $mmu = double :mmu
-  end
+
+  before { subject.set_register :pc, 0x100 }
 
   describe '#ccf' do
     context 'with carry flag set' do
@@ -45,7 +45,7 @@ describe Waterfoul::CPU do
     describe "##{method}" do
       before { subject.set_register i, 5 }
 
-      it "decrements #{i.upcase} register" do
+      it "decrements the #{i.upcase} register" do
         subject.public_send method
         expect(subject.public_send(i)).to eq 4
       end
@@ -114,17 +114,15 @@ describe Waterfoul::CPU do
 
   # DEC (HL)
   describe '#dec__hl' do
-    let(:mem_loc) { 0x8FFF }
-    before { allow($mmu).to receive(:read_byte).and_return(0x12) }
-    before { subject.set_register :hl, mem_loc }
+    before { $mmu.write_byte 0x8FCF, 0x55 }
+    before { subject.set_register :hl, 0x8FCF }
 
     it 'decrements value in memory at HL' do
-      expect($mmu).to receive(:write_byte).with(mem_loc, 0x11)
       subject.dec__hl
+      expect($mmu.read_byte(0x8FCF)).to eq 0x54
     end
 
     it 'sets N flag' do
-      allow($mmu).to receive(:write_byte)
       subject.dec__hl
       expect(subject.f).to eq 0b0100_0000
     end
@@ -132,13 +130,12 @@ describe Waterfoul::CPU do
 
   # INC (HL)
   describe '#inc__hl' do
-    let(:mem_loc) { 0x8FFF }
-    before { allow($mmu).to receive(:read_byte).and_return(0x15) }
-    before { subject.set_register :hl, mem_loc }
+    before { $mmu.write_byte 0x1C8D, 0x10 }
+    before { subject.set_register :hl, 0x1C8D }
 
     it 'increments value in memory at HL' do
-      expect($mmu).to receive(:write_byte).with(mem_loc, 0x16)
       subject.inc__hl
+      expect($mmu.read_byte(0x1C8D)).to eq 0x11
     end
   end
 
@@ -146,7 +143,7 @@ describe Waterfoul::CPU do
   [:a, :b, :c, :d, :e, :h, :l].each do |i|
     method = "inc_#{i}"
     describe "##{method}" do
-      it "increments #{i.upcase} register" do
+      it "increments the #{i.upcase} register" do
         subject.public_send method
         expect(subject.public_send(i)).to eq 1
       end
@@ -253,15 +250,13 @@ describe Waterfoul::CPU do
   end
 
   describe '#add_a_hl' do
-    let(:mem_loc) { 0x8FFF }
-
+    before { $mmu.write_byte 0x512C, 0x51 }
     before { subject.set_register :a, 0x1 }
-    before { subject.set_register :hl, mem_loc }
-    before { allow($mmu).to receive(:read_byte).and_return(0x2) }
+    before { subject.set_register :hl, 0x512C }
 
     it 'adds immediate value from memory to A' do
       subject.add_a_hl
-      expect(subject.a).to eq 0x3
+      expect(subject.a).to eq 0x52
     end
 
     context 'when additon results in carry' do
@@ -269,7 +264,7 @@ describe Waterfoul::CPU do
 
       it 'equals 0x1' do
         subject.add_a_hl
-        expect(subject.a).to eq 0x1
+        expect(subject.a).to eq 0x50
       end
 
       it 'sets carry flag' do
@@ -311,7 +306,7 @@ describe Waterfoul::CPU do
 
         it 'sets carry flag' do
           subject.public_send method
-          expect(subject.f).to eq 0b0001_0000
+          expect(subject.f).to eq 0b0011_0000
         end
       end
     end
@@ -339,13 +334,14 @@ describe Waterfoul::CPU do
       before { subject.set_register :a, 0xFF }
       it 'sets carry flag' do
         subject.adc_a_a
-        expect(subject.f).to eq 0b0001_0000
+        expect(subject.f).to eq 0b0011_0000
       end
     end
   end
 
   describe '#adc_a_hl' do
-    before { expect($mmu).to receive(:read_byte).and_return 0x54 }
+    before { $mmu.write_byte 0xF124, 0x54 }
+    before { subject.set_register :hl, 0xF124 }
 
     context 'with carry set' do
       before { subject.set_c_flag }
@@ -370,7 +366,7 @@ describe Waterfoul::CPU do
       before { subject.set_register :a, 0xFF }
       it 'sets carry flag' do
         subject.adc_a_hl
-        expect(subject.f).to eq 0b0001_0000
+        expect(subject.f).to eq 0b0011_0000
       end
     end
   end
@@ -387,9 +383,9 @@ describe Waterfoul::CPU do
         expect(subject.a).to eq 0x04
       end
 
-      it 'sets C+N flag' do
+      it 'sets N flag' do
         subject.public_send method
-        expect(subject.f).to eq 0b0101_0000
+        expect(subject.f).to eq 0b0100_0000
       end
     end
   end
@@ -404,16 +400,17 @@ describe Waterfoul::CPU do
 
   describe '#sub_hl' do
     before { subject.set_register :a, 0xFF }
-    before { expect($mmu).to receive(:read_byte).and_return 0x51 }
+    before { subject.set_register :hl, 0x1515 }
+    before { $mmu.write_byte 0x1515, 0x15 }
 
     it 'subtracts immediate value from memory from A' do
       subject.sub_hl
-      expect(subject.a).to eq 0xAE
+      expect(subject.a).to eq 0xEA
     end
 
-    it 'sets C+N flag' do
+    it 'sets N flag' do
       subject.sub_hl
-      expect(subject.f).to eq 0b0101_0000
+      expect(subject.f).to eq 0b0100_0000
     end
   end
 
@@ -456,37 +453,37 @@ describe Waterfoul::CPU do
         before { subject.set_register :a, 0x2 }
         before { subject.set_register i, 0x1 }
 
-        it 'sets H+N flag' do
+        it 'sets N flag' do
           subject.public_send method
-          expect(subject.f).to eq 0b0110_0000
+          expect(subject.f).to eq 0b0100_0000
         end
       end
 
       context 'when no borrow' do
-        before { subject.set_register :a, 0x3 }
-        before { subject.set_register i, 0xF }
+        before { subject.set_register :a, 0x15 }
+        before { subject.set_register i, 0x2 }
 
-        it 'sets C+N flag' do
+        it 'sets N flag' do
           subject.public_send method
-          expect(subject.f).to eq 0b0101_0000
+          expect(subject.f).to eq 0b0100_0000
         end
       end
     end
   end
 
   describe '#sbc_a_a' do
-    before { subject.set_register :a, 0xFF }
+    before { subject.set_register :a, 0x12 }
 
     context 'when carry bit set' do
       before { subject.set_c_flag }
-      it 'sets C+N flag' do
+      it 'sets N+H+C flag' do
         subject.sbc_a_a
-        expect(subject.f).to eq 0b0101_0000
+        expect(subject.f).to eq 0b0111_0000
       end
 
       it 'subtracts A from A + Carry bit' do
         subject.sbc_a_a
-        expect(subject.a).to eq 0x1
+        expect(subject.a).to eq 0xFF
       end
     end
 
@@ -505,53 +502,18 @@ describe Waterfoul::CPU do
   end
 
   describe '#sbc_a_hl' do
-    before { subject.set_register :a, 0xFF }
-    before { allow($mmu).to receive(:read_byte).and_return(0xF) }
+    before { subject.set_register :a, 0xF }
+    before { $mmu.write_byte 0xCD12, 0x3 }
+    before { subject.set_register :hl, 0xCD12 }
 
-    it "subtracts (HL) from A" do
+    it 'subtracts value in memory from the A register' do
       subject.sbc_a_hl
-      expect(subject.a).to eq 0xF0
+      expect(subject.a).to eq 0xC
     end
 
-    it 'sets N flag' do
+    it 'sets the S flag' do
       subject.sbc_a_hl
       expect(subject.f).to eq 0b0100_0000
-    end
-
-    context 'with carry flag set' do
-      before { subject.set_c_flag }
-      it "subtracts (HL) and carry bit from A" do
-        subject.sbc_a_hl
-        expect(subject.a).to eq 0xEF
-      end
-    end
-
-    context 'when result results in 0' do
-      before { subject.set_register :a, 0xF }
-
-      it 'sets N+Z flag' do
-        subject.sbc_a_hl
-        expect(subject.f).to eq 0b1100_0000
-      end
-    end
-
-    context 'when no borrow on bit 4' do
-      before { subject.set_register :a, 0x2 }
-      before { allow($mmu).to receive(:read_byte).and_return(0x1) }
-
-      it 'sets H+N flag' do
-        subject.sbc_a_hl
-        expect(subject.f).to eq 0b0110_0000
-      end
-    end
-
-    context 'when no borrow' do
-      before { subject.set_register :a, 0x3 }
-
-      it 'sets C+N flag' do
-        subject.sbc_a_hl
-        expect(subject.f).to eq 0b0101_0000
-      end
     end
   end
 
@@ -579,34 +541,22 @@ describe Waterfoul::CPU do
   end
 
   describe '#and_d8' do
-    before { subject.set_register :f, 0b0101_0000 }
+    before { $mmu.write_byte 0x100, 0x51 }
     before { subject.set_register :a, 0x99 }
-    before { allow($mmu).to receive(:read_byte).and_return 0x51 }
 
     it 'performs an AND on value from memory and A' do
       subject.and_d8
       expect(subject.a).to eq 0x11
-    end
-
-    it 'resets N+C flag and sets H flag' do
-      subject.and_d8
-      expect(subject.f).to eq 0b0010_0000
     end
   end
 
   describe '#and_hl' do
-    before { subject.set_register :f, 0b0101_0000 }
+    before { $mmu.write_byte 0x100, 0x51 }
     before { subject.set_register :a, 0x99 }
-    before { allow($mmu).to receive(:read_byte).and_return 0x51 }
 
     it 'performs an AND on value from memory and A' do
       subject.and_hl
       expect(subject.a).to eq 0x11
-    end
-
-    it 'resets N+C flag and sets H flag' do
-      subject.and_hl
-      expect(subject.f).to eq 0b0010_0000
     end
   end
 
@@ -622,11 +572,6 @@ describe Waterfoul::CPU do
         subject.public_send method
         expect(subject.a).to eq 0xFA
       end
-
-      it 'resets H+C+N flags' do
-        subject.public_send method
-        expect(subject.f).to eq 0x0
-      end
     end
   end
 
@@ -638,42 +583,31 @@ describe Waterfoul::CPU do
       subject.xor_a
       expect(subject.a).to eq 0x00
     end
-
-    it 'resets H+C+N flags' do
-      subject.xor_hl
-      expect(subject.f).to eq 0x0
-    end
   end
 
   describe '#xor_d8' do
-    before { subject.set_register :f, 0b0111_0000 }
-    before { allow($mmu).to receive(:read_byte).and_return 0x36 }
+    before { $mmu.write_byte 0x100, 0x36 }
     before { subject.set_register :a, 0xFF }
 
-    it 'performs XOR operation on immediate value from memory to A' do
+    it 'performs XOR operation on immediate value from memory to the A register' do
       subject.xor_d8
       expect(subject.a).to eq 0xC9
     end
 
-    it 'resets H+C+N flags' do
+    it 'increments the PC' do
       subject.xor_d8
-      expect(subject.f).to eq 0x0
+      expect(subject.pc).to eq 0x101
     end
   end
 
   describe '#xor_hl' do
-    before { subject.set_register :f, 0b0111_0000 }
-    before { allow($mmu).to receive(:read_byte).and_return 0x36 }
+    before { subject.set_register :hl, 0x1515 }
+    before { $mmu.write_byte 0x1515, 0x36 }
     before { subject.set_register :a, 0xFF }
 
     it 'performs XOR operation on immediate value from memory to A' do
       subject.xor_hl
       expect(subject.a).to eq 0xC9
-    end
-
-    it 'resets H+C+N flags' do
-      subject.xor_hl
-      expect(subject.f).to eq 0x0
     end
   end
 
@@ -689,11 +623,6 @@ describe Waterfoul::CPU do
         subject.public_send method
         expect(subject.a).to eq 0xFF
       end
-
-      it 'resets H+C+N flags' do
-        subject.public_send method
-        expect(subject.f).to eq 0x0
-      end
     end
   end
 
@@ -705,42 +634,26 @@ describe Waterfoul::CPU do
       subject.or_a
       expect(subject.a).to eq 0xF0
     end
-
-    it 'resets H+C+N flags' do
-      subject.or_a
-      expect(subject.f).to eq 0x0
-    end
   end
 
   describe '#or_d8' do
-    before { subject.set_register :f, 0b0111_0000 }
-    before { allow($mmu).to receive(:read_byte).and_return(0x0F) }
+    before { $mmu.write_byte 0x100, 0xF }
     before { subject.set_register :a, 0xF0 }
 
     it 'performs OR operation on immediate value from memory and A' do
       subject.or_d8
       expect(subject.a).to eq 0xFF
-    end
-
-    it 'resets H+C+N flags' do
-      subject.or_d8
-      expect(subject.f).to eq 0x0
     end
   end
 
   describe '#or_hl' do
-    before { subject.set_register :f, 0b0111_0000 }
-    before { allow($mmu).to receive(:read_byte).and_return(0x0F) }
+    before { subject.set_register :hl, 0xC151 }
+    before { $mmu.write_byte 0xC151, 0xF }
     before { subject.set_register :a, 0xF0 }
 
     it 'performs OR operation on immediate value from memory and A' do
       subject.or_hl
       expect(subject.a).to eq 0xFF
-    end
-
-    it 'resets H+C+N flags' do
-      subject.or_hl
-      expect(subject.f).to eq 0x0
     end
   end
 
@@ -801,13 +714,16 @@ describe Waterfoul::CPU do
   end
 
   describe '#cp_d8' do
-    let(:pc) { 0x8FFF}
-    before { subject.set_register :pc, pc }
+    before { $mmu.write_byte 0x100, 0x3 }
     before { subject.set_register :a, 0xF }
-    before { allow($mmu).to receive(:read_byte).and_return(0x3) }
 
     it 'does not alter A register' do
       expect { subject.cp_d8 }.to_not change { subject.a }
+    end
+
+    it 'increments the program counter' do
+      subject.cp_d8
+      expect(subject.pc).to eq 0x101
     end
 
     it 'sets N flag' do
@@ -816,7 +732,7 @@ describe Waterfoul::CPU do
     end
 
     context 'when operation results to 0' do
-      before { allow($mmu).to receive(:read_byte).and_return(0xF) }
+      before { $mmu.write_byte 0x100, 0xF }
       it 'sets N+Z flag' do
         subject.cp_d8
         expect(subject.f).to eq 0b1100_0000
@@ -825,7 +741,7 @@ describe Waterfoul::CPU do
 
     context 'when no borrow on bit 4' do
       before { subject.set_register :a, 0x3 }
-      before { allow($mmu).to receive(:read_byte).and_return(0xFF) }
+      before { $mmu.write_byte 0x100, 0xFF }
 
       it 'sets the H flag' do
         subject.cp_d8
@@ -835,7 +751,7 @@ describe Waterfoul::CPU do
 
     context 'when no borrow occurs' do
       before { subject.set_register :a, 0xCF }
-      before { allow($mmu).to receive(:read_byte).and_return(0xFD) }
+      before { $mmu.write_byte 0x100, 0xFD }
 
       it 'sets the C flag' do
         subject.cp_d8
@@ -846,10 +762,12 @@ describe Waterfoul::CPU do
 
   describe '#cp_hl' do
     before { subject.set_register :a, 0x5 }
-    before { allow($mmu).to receive(:read_byte).and_return(0x1) }
+    before { subject.set_register :hl, 0xC151 }
+    before { $mmu.write_byte 0xC151, 0x1 }
 
     it 'does not change A register' do
-      expect { subject.cp_hl }.to_not change { subject.a }
+      subject.cp_hl
+      expect(subject.a).to eq 0x5
     end
 
     it 'sets N flag' do
@@ -858,29 +776,20 @@ describe Waterfoul::CPU do
     end
 
     context 'when operation results to 0' do
-      before { allow($mmu).to receive(:read_byte).and_return(0x5) }
+      before { $mmu.write_byte 0xC151, 0x5 }
       it 'sets the N+Z flag' do
         subject.cp_hl
         expect(subject.f).to eq 0b1100_0000
       end
     end
 
-    context 'when result first nibbles - carry is less then 0' do
-      before { allow($mmu).to receive(:read_byte).and_return(0x5) }
-
-      it 'sets the N+H flag' do
-        subject.cp_hl
-        expect(subject.f).to eq 0b0110_0000
-      end
-    end
-
     context 'when A register is less then the result' do
       before { subject.set_register :a, 0x3 }
-      before { allow($mmu).to receive(:read_byte).and_return(0x4) }
+      before { $mmu.write_byte 0xC151, 0x4 }
 
-      it 'sets the N+C flag' do
+      it 'sets the N+H+C flag' do
         subject.cp_hl
-        expect(subject.f).to eq 0b0101_0000
+        expect(subject.f).to eq 0b0111_0000
       end
     end
   end
