@@ -1,10 +1,7 @@
 require 'spec_helper'
 
 describe Waterfoul::Interrupt do
-  before :each do
-    $mmu = Waterfoul::MMU.new
-  end
-
+  before { $mmu = Waterfoul::MMU.new }
   subject { described_class }
 
   describe '.request_interupt' do
