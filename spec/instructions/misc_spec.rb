@@ -14,18 +14,18 @@ describe Waterfoul::CPU do
   describe '#halt' do
     it 'sets the halt flag' do
       subject.halt
-      expect(subject.halt).to eq 1
+      expect(subject.halt).to eq true
     end
   end
 
   describe '#di' do
     it 'resets the interupt flag' do
       subject.di
-      expect(subject.ime).to eq 0
+      expect(subject.ime).to eq false
     end
   end
 
-  xdescribe 'prefix_cb' do
+  describe 'prefix_cb' do
     it 'increments pc by 1' do
       subject.prefix_cb
       expect(subject.pc).to eq 1
@@ -35,7 +35,7 @@ describe Waterfoul::CPU do
   describe '#ei' do
     it 'sets the interupt flag' do
       subject.ei
-      expect(subject.ime).to eq 1
+      expect(subject.ime).to eq true
     end
   end
 end
