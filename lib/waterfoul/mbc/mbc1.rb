@@ -7,7 +7,7 @@ module Waterfoul
 
       def initialize(program)
         @rom_bank = 1
-        @ram_bank = 1
+        @ram_bank = 0
         @mode = 0
         @ram_enabled = false
         @game_program = program
