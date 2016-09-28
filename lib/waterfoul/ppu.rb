@@ -173,7 +173,7 @@ module Waterfoul
         0.upto(7) do |pixelx|
           buffer_addr = line_pixel_offset + pixelx + window_pos_x
 
-          next if buffer_addr < 0 || buffer_addr >= Sreen::SCREEN_WIDTH
+          next if buffer_addr < 0 || buffer_addr >= Screen::SCREEN_WIDTH
 
           shift = 0x1 << (7 - pixelx)
 
