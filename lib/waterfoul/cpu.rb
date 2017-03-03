@@ -1,6 +1,6 @@
 require 'waterfoul/instructions/opcode'
 require 'waterfoul/instructions/registers'
-require 'Waterfoul/instructions/timings'
+require 'waterfoul/instructions/timings'
 require 'waterfoul/instructions/jump'
 require 'waterfoul/instructions/load'
 require 'waterfoul/instructions/logic'
