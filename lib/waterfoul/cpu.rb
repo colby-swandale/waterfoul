@@ -78,7 +78,7 @@ module Waterfoul
     end
 
     def check_halt
-      @halt = false if @pre_halt_interrupt != $mmu.read_byte(0xFF0F)
+      @halt = false if @pre_halt_interrupt != $mmu.read_memory_byte(0xFF0F)
     end
 
     def halted?

@@ -81,6 +81,10 @@ module Waterfoul
     alias_method :write_byte, :[]=
     alias_method :read_byte, :[]
 
+    def read_memory_byte(i)
+      @memory[i]
+    end
+
     # read 2 bytes from memory
     def read_word(addr)
       self[addr] | (self[addr + 1] << 8)

@@ -304,7 +304,7 @@ module Waterfoul
             pixel = (byte_1 & (0x1 << (7 - pixelx)) > 0) ? 1 : 0
             pixel |= (byte_2 & (0x1 << (7 - pixelx)) > 0) ? 2 : 0
             position = line_width + buffer_addr
-            palette = $mmu.read_byte 0xFF47
+            palette = $mmu.read_memory_byte 0xFF47
             color = (palette >> (pixel * 2)) & 0x3
 
             @framebuffer[position] = rgb(color)
