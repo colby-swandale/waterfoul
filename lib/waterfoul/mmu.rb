@@ -32,12 +32,12 @@ module Waterfoul
 
       if i == 0xFF00
         Input.read_keyboard @memory[i]
-      elsif (0x8000...0xA000) === i or (0xC000...0xE000) === i or (0xFE00..0xFFFF) === i
+      elsif i >= 0x8000 && i < 0xA000 or i >= 0xC000 && i < 0xE000 or i >= 0xFE00
         @memory[i]
-      elsif (0xE000...0xFE00) === i
-        @memory[i - 0x2000]
-      elsif (0x0000...0x8000) === i or (0xA000...0xC000) === i
+      elsif i < 0x8000 or i >= 0xA000 && i < 0xC000
         @cartridge[i]
+      else # if (0xE000...0xFE00) === i
+        @memory[i - 0x2000]
       end
     end
 
