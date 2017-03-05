@@ -6,8 +6,8 @@ module Waterfoul
       # read the given file as binary and break it down into an array of bytes
       rom = File.binread(rom_filename).bytes
       # initialize emulated CPU, GPU & Scren components
-      $mmu = MMU.new
       @cartridge = Cartridge.new rom
+      $mmu = MMU.new(@cartridge)
       @cpu = CPU.new
       @cpu = SkipBoot.set_state(@cpu) if options.has_key?('skip_boot')
       @ppu = PPU.new
@@ -15,7 +15,6 @@ module Waterfoul
     end
 
     def run
-      $mmu.cartridge = @cartridge
       loop do
         @cpu.step
         @ppu.step @cpu.m

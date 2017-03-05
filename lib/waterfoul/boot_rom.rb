@@ -49,10 +49,19 @@ module Waterfoul
       0x3E, 0x01, 0xE0, 0x50
     ].freeze
 
+    attr_reader :cartridge
+
+    def initialize(cartridge)
+      @cartridge = cartridge
+    end
 
     # Read bootstrap instruction given an index (memory location)
-    def self.[](i)
-      ROM[i]
+    def [](i)
+      ROM[i] || @cartridge[i]
+    end
+
+    def []=(i, v)
+      @cartridge[i] = v
     end
   end
 end

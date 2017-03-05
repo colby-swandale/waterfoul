@@ -54,5 +54,9 @@ module Waterfoul
         MBC::MBC5
       end
     end
+
+    def self.empty
+      Array.new(0x8000, 0)
+    end
   end
 end
