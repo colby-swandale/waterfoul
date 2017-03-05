@@ -30,21 +30,14 @@ module Waterfoul
     def [](i)
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
-      case i
-      when 0xFF00
+      if i == 0xFF00
         Input.read_keyboard @memory[i]
-      when 0x0000...0x8000 # ROM Bank 0 + n
-        @cartridge[i]
-      when 0x8000...0xA000 # Video RAM
+      elsif (0x8000...0xA000) === i or (0xC000...0xE000) === i or (0xFE00..0xFFFF) === i
         @memory[i]
-      when 0xA000...0xC000 # RAM Bank
-        @cartridge[i]
-      when 0xC000...0xE000 # Internal RAM
-        @memory[i]
-      when 0xE000...0xFE00 # Internal RAM (shadow)
+      elsif (0xE000...0xFE00) === i
         @memory[i - 0x2000]
-      when 0xFE00..0xFFFF # Graphics (OAM), IO, Zero-page
-        @memory[i]
+      elsif (0x0000...0x8000) === i or (0xA000...0xC000) === i
+        @cartridge[i]
       end
     end
 
