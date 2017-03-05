@@ -16,7 +16,7 @@ module Waterfoul
 
         # window show/hide
         def window_enabled?
-          lcdc & 0x20 == 0x20 ? true : false
+          lcdc & 0x20 == 0x20
         end
 
         # BG Window map tile data
@@ -34,11 +34,11 @@ module Waterfoul
         end
 
         def obj_display
-          lcdc & 0x2 == 0x2 ? true : false
+          lcdc & 0x2 == 0x2
         end
 
         def bg_display
-          lcdc & 0x1 == 0x1 ? true : false
+          lcdc & 0x1 == 0x1
         end
 
         private
