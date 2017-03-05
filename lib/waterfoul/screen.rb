@@ -14,6 +14,7 @@ module Waterfoul
       SDL.SetHint "SDL_HINT_RENDER_SCALE_QUALITY",  "2"
       SDL.RenderSetLogicalSize(@renderer, WINDOW_WIDTH, WINDOW_HEIGHT)
       @texture = SDL.CreateTexture @renderer, SDL::PIXELFORMAT_ARGB8888, 1, SCREEN_WIDTH, SCREEN_HEIGHT
+      @last = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     def render(framebuffer)
@@ -22,6 +23,13 @@ module Waterfoul
       SDL.RenderClear @renderer
       SDL.RenderCopy @renderer, @texture, nil, nil
       SDL.RenderPresent @renderer
+
+      t = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      fps = 1.0 / (t - @last)
+      fps = fps.floor.to_s
+      @last = t
+
+      SDL.SetWindowTitle(@window, "waterfoul (#{fps} fps)")
     end
   end
 end
