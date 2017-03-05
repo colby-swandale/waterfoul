@@ -44,7 +44,7 @@ module Waterfoul
         private
 
         def lcdc
-          $mmu.read_byte LCDC_MEM_LOC
+          $mmu.read_memory_byte LCDC_MEM_LOC
         end
       end
     end

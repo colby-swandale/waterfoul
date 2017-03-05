@@ -125,7 +125,7 @@ module Waterfoul
       # master disable interrupts
       @ime = false
       push_onto_stack @pc
-      if_reg = $mmu.read_byte 0xFF0F
+      if_reg = $mmu.read_memory_byte 0xFF0F
       case interrupt
       when Interrupt::INTERRUPT_VBLANK
         @pc = 0x40

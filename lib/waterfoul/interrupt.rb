@@ -14,13 +14,13 @@ module Waterfoul
 
     #
     def self.request_interrupt(interrupt)
-      if_reg = $mmu.read_byte IF_REG_MEM_LOC
+      if_reg = $mmu.read_memory_byte IF_REG_MEM_LOC
       $mmu.write_byte IF_REG_MEM_LOC, (if_reg | interrupt)
     end
 
     def self.pending_interrupt
-      ie_reg = $mmu.read_byte IE_REG_MEM_LOC
-      if_reg = $mmu.read_byte IF_REG_MEM_LOC
+      ie_reg = $mmu.read_memory_byte IE_REG_MEM_LOC
+      if_reg = $mmu.read_memory_byte IF_REG_MEM_LOC
       pending_interrupts = if_reg & ie_reg
 
       if pending_interrupts & INTERRUPT_VBLANK == INTERRUPT_VBLANK

@@ -128,7 +128,7 @@ module Waterfoul
     end
 
     def update_stat_mode
-      stat = $mmu.read_byte 0xFF41
+      stat = $mmu.read_memory_byte 0xFF41
       new_stat = (stat & 0xFC) | (@mode & 0x3)
       $mmu.write_byte 0xFF41, new_stat
     end
@@ -140,8 +140,8 @@ module Waterfoul
       # if the LCDC window enable bit flag is not set
       return if @window_line > 143 || !IO::LCDControl.window_enabled?
 
-      window_pos_x = $mmu.read_byte(0xFF4B) - 7
-      window_pos_y = $mmu.read_byte(0xFF4A)
+      window_pos_x = $mmu.read_memory_byte(0xFF4B) - 7
+      window_pos_y = $mmu.read_memory_byte(0xFF4A)
 
       # don't render if the window is outside the bounds of the screen
       return if window_pos_x > 159 || window_pos_y > 143 || window_pos_y > line
@@ -206,14 +206,14 @@ module Waterfoul
       39.downto(0) do |sprite|
         sprite_offset = sprite * 4
 
-        sprite_y = $mmu.read_byte(0xFE00 + sprite_offset) - 16
+        sprite_y = $mmu.read_memory_byte(0xFE00 + sprite_offset) - 16
         next if sprite_y > line || (sprite_y + sprite_size) <= line
 
-        sprite_x = $mmu.read_byte(0xFE00 + sprite_offset + 1) - 8
+        sprite_x = $mmu.read_memory_byte(0xFE00 + sprite_offset + 1) - 8
         next if sprite_x < -7 || sprite_x >= Screen::SCREEN_WIDTH
 
-        sprite_tile_offset = ($mmu.read_byte(0xFE00 + sprite_offset + 2) & (sprite_size == 16 ? 0xFE : 0xFF)) * 16
-        sprite_flags = $mmu.read_byte(0xFE00 + sprite_offset + 3)
+        sprite_tile_offset = ($mmu.read_memory_byte(0xFE00 + sprite_offset + 2) & (sprite_size == 16 ? 0xFE : 0xFF)) * 16
+        sprite_flags = $mmu.read_memory_byte(0xFE00 + sprite_offset + 3)
         x_flip = sprite_flags & 0x20 == 0x20 ? true : false
         y_flip = sprite_flags & 0x40 == 0x40 ? true : false
         #above_bg = sprite_flags & 0x80 == 0x80 ? true : false
@@ -269,9 +269,9 @@ module Waterfoul
         tiles_select = IO::LCDControl.bg_tile_select
         map_select = IO::LCDControl.bg_map_select
         # x pixel offset
-        scx = $mmu.read_byte 0xFF43
+        scx = $mmu.read_memory_byte 0xFF43
         # y pixel offset
-        scy = $mmu.read_byte 0xFF42
+        scy = $mmu.read_memory_byte 0xFF42
         # line with y offset
         line_adjusted = (line + scy) & 0xFF
         # get position of tile row to read
@@ -332,8 +332,8 @@ module Waterfoul
 
     def compare_lylc
       if IO::LCDControl.screen_enabled?
-        lyc = $mmu.read_byte 0xFF45
-        stat = $mmu.read_byte 0xFF41
+        lyc = $mmu.read_memory_byte 0xFF45
+        stat = $mmu.read_memory_byte 0xFF41
 
         if lyc == current_line
           stat = stat | 0x4
@@ -345,7 +345,7 @@ module Waterfoul
     end
 
     def current_line
-      $mmu.read_byte LCDC_Y_COORDINATE_MEM_LOC
+      $mmu.read_memory_byte LCDC_Y_COORDINATE_MEM_LOC
     end
 
     def reset_current_line
