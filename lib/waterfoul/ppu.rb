@@ -281,7 +281,8 @@ module Waterfoul
         # relative line number offset
         tile_line_offset = tile_line * 2
         palette = $mmu.read_memory_byte 0xFF47
-        0.upto(31) do |x|
+        x = 0
+        while x < 32
           tile = 0
           if tiles_select == 0x8800
             tile = signed_value $mmu.read_byte(map_select + y_offset + x)
@@ -297,18 +298,20 @@ module Waterfoul
           byte_1 = $mmu.read_byte tile_address
           byte_2 = $mmu.read_byte (tile_address + 1)
 
-          0.upto(7) do |pixelx|
-            buffer_addr = line_pixel_offset + pixelx - scx
-
-            next if buffer_addr >= Screen::SCREEN_WIDTH
-
-            pixel = (byte_1 & (0x1 << (7 - pixelx)) > 0) ? 1 : 0
-            pixel |= (byte_2 & (0x1 << (7 - pixelx)) > 0) ? 2 : 0
+          pixelx = 0
+          buffer_addr = line_pixel_offset - scx
+          while pixelx < 8 and buffer_addr < Screen::SCREEN_WIDTH
+            shift = 0x1 << (7 - pixelx)
+            pixel = (byte_1 & shift > 0) ? 1 : 0
+            pixel |= (byte_2 & shift > 0) ? 2 : 0
             position = line_width + buffer_addr
             color = (palette >> (pixel * 2)) & 0x3
 
             @framebuffer[position] = rgb(color)
+            pixelx += 1
+            buffer_addr = line_pixel_offset + pixelx - scx
           end
+          x += 1
         end
       else
         0.upto(Screen::SCREEN_WIDTH - 1) do |i|
