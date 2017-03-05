@@ -37,19 +37,19 @@ module Waterfoul
       @modeclock += cycles
       @auxillary_modeclock += cycles
 
-      if IO::LCDControl.screen_enabled? && @screen_enabled
-        case @mode
-        when H_BLANK_STATE
-          hblank if @modeclock >= H_BLANK_TIME
-        when V_BLANK_STATE
-          vblank
-        when OAM_READ_STATE
-          oam if @modeclock >= OAM_SCANLINE_TIME
-        when VMRAM_READ_STATE
-          vram if @modeclock >= VRAM_SCANLINE_TIME
-        end
-      else
-        if IO::LCDControl.screen_enabled?
+      if IO::LCDControl.screen_enabled?
+        if @screen_enabled
+          case @mode
+          when H_BLANK_STATE
+            hblank if @modeclock >= H_BLANK_TIME
+          when V_BLANK_STATE
+            vblank
+          when OAM_READ_STATE
+            oam if @modeclock >= OAM_SCANLINE_TIME
+          when VMRAM_READ_STATE
+            vram if @modeclock >= VRAM_SCANLINE_TIME
+          end
+        else
           @screen_enabled = true
           @modeclock = 0
           @mode = 0
@@ -58,9 +58,9 @@ module Waterfoul
           reset_current_line
           update_stat_mode
           compare_lylc
-        else
-          @screen_enabled = false
         end
+      else
+        @screen_enabled = false
       end
     end
 
