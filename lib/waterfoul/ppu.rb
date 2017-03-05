@@ -280,6 +280,7 @@ module Waterfoul
         tile_line = line_adjusted % 8
         # relative line number offset
         tile_line_offset = tile_line * 2
+        palette = $mmu.read_memory_byte 0xFF47
         0.upto(31) do |x|
           tile = 0
           if tiles_select == 0x8800
@@ -304,7 +305,6 @@ module Waterfoul
             pixel = (byte_1 & (0x1 << (7 - pixelx)) > 0) ? 1 : 0
             pixel |= (byte_2 & (0x1 << (7 - pixelx)) > 0) ? 2 : 0
             position = line_width + buffer_addr
-            palette = $mmu.read_memory_byte 0xFF47
             color = (palette >> (pixel * 2)) & 0x3
 
             @framebuffer[position] = rgb(color)
