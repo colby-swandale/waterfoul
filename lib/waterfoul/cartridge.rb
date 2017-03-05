@@ -16,29 +16,26 @@ module Waterfoul
   # ninetndo logo, game title, manufacturer, rom size, ram size and more.
   #
   class Cartridge
-    extend Forwardable
     # location byte in memory (physically located on cartrdige) that declares the type of cartrdige
     CARTRIDGE_TYPE_MEM_LOC = 0x147
-    # delegate any reads/writes to the memory bank controller
-    def_delegators :@mbc, :[], :[]=
 
-    def initialize(rom)
+    def self.new(rom)
       # get cartridge type byte from game program
       cartridge_type = rom[CARTRIDGE_TYPE_MEM_LOC]
-      # assign memory bank controller to cartridge
-      @mbc = cartrdige_controller cartridge_type, rom
+      # return memory bank controller to cartridge
+      cartrdige_controller cartridge_type, rom
     end
 
     private
 
     # initialize the memory bank controller given the game program and the controller type
-    def cartrdige_controller type, rom
+    def self.cartrdige_controller type, rom
       controller_const(type).new rom
     end
 
     # return the class constant that implements the behavior of the memory bank controller
     # declared by the game cartridge
-    def controller_const(type_byte)
+    def self.controller_const(type_byte)
       case type_byte
       when 0x00, 0x8, 0x9
         MBC::ROM
