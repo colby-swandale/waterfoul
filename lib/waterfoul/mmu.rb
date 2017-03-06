@@ -17,7 +17,6 @@ module Waterfoul
     DIV_MEM_LOC = 0xFF04
 
     attr_reader :memory
-    attr_accessor :cartridge
 
     def initialize(cartridge = Cartridge.empty)
       # map the boot rom when the device starts
