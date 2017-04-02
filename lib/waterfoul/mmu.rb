@@ -11,20 +11,16 @@ module Waterfoul
     MEMORY_SIZE = 65536 # bytes
     # unmap boot rom register address
     UNMAP_BOOT_ROM_MEM_LOC = 0xFF50
-    # location in memory where the boot rom ends
-    BOOT_ROM_END_MEM_LOC = 0xFF
     # DMA register function address
     DMA_TRANSFER_MEM_LOC = 0xFF46
     # DIV register memory location
     DIV_MEM_LOC = 0xFF04
 
     attr_reader :memory
-    attr_accessor :cartridge
 
-    def initialize
-      @cartridge = Array.new 0x8000, 0
+    def initialize(cartridge = Cartridge.empty)
       # map the boot rom when the device starts
-      @map_boot_rom = true
+      @cartridge = BootROM.new(cartridge)
       # storage for usable memory (zero filled)
       @memory = Array.new MEMORY_SIZE, 0
     end
@@ -33,26 +29,14 @@ module Waterfoul
     def [](i)
       raise MemoryOutOfBounds if i > MEMORY_SIZE || i < 0
 
-      case i
-      when 0xFF00
+      if i == 0xFF00
         Input.read_keyboard @memory[i]
-      when 0x0000...0x8000 # ROM Bank 0 + n
-        # if the boot rom is enabled and the address is < 0x100
-        if @map_boot_rom && i <= BOOT_ROM_END_MEM_LOC
-          BootROM[i]
-        else
-          @cartridge[i]
-        end
-      when 0x8000...0xA000 # Video RAM
+      elsif i >= 0x8000 && i < 0xA000 or i >= 0xC000 && i < 0xE000 or i >= 0xFE00
         @memory[i]
-      when 0xA000...0xC000 # RAM Bank
+      elsif i < 0x8000 or i >= 0xA000 && i < 0xC000
         @cartridge[i]
-      when 0xC000...0xE000 # Internal RAM
-        @memory[i]
-      when 0xE000...0xFE00 # Internal RAM (shadow)
+      else # if (0xE000...0xFE00) === i
         @memory[i - 0x2000]
-      when 0xFE00..0xFFFF # Graphics (OAM), IO, Zero-page
-        @memory[i]
       end
     end
 
@@ -65,7 +49,9 @@ module Waterfoul
       unless options[:hardware_operation]
         case i
         when UNMAP_BOOT_ROM_MEM_LOC # unmap the boot rom when 0xFF50 is wrtiten to in memory
-          @map_boot_rom = false if v == 0x1 && @map_boot_rom
+          if v == 0x1 && @cartridge.is_a?(BootROM)
+            @cartridge = @cartridge.cartridge
+          end
         when 0xFF00
           @memory[i] = v | 0xF
         when 0xFF46 # DMA transfer
@@ -93,6 +79,10 @@ module Waterfoul
 
     alias_method :write_byte, :[]=
     alias_method :read_byte, :[]
+
+    def read_memory_byte(i)
+      @memory[i]
+    end
 
     # read 2 bytes from memory
     def read_word(addr)

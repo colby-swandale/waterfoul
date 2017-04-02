@@ -36,5 +36,6 @@ module Waterfoul
     attach_function :GetKeyboardState, 'SDL_GetKeyboardState', [:pointer], :pointer
     attach_function :SetHint, 'SDL_SetHint', [:string, :string], :int
     attach_function :RenderSetLogicalSize, 'SDL_RenderSetLogicalSize', [:pointer, :int, :int], :int
+    attach_function :SetWindowTitle, 'SDL_SetWindowTitle', [:pointer, :string], :void
   end
 end
