@@ -56,9 +56,10 @@ module Waterfoul
       @pc = 0x0000
       @sp = 0x0000
       @a = @b = @c = @d = @e = @f = @h = @l = 0x00
-      @m = 0
       @timer = Timer.new
       @ime = false
+      @halt = false
+      reset_tick
     end
 
     # This method emulates the CPU cycle process. Each instruction is
