@@ -43,7 +43,7 @@ module Waterfoul
     include Instructions::Prefix
 
     # 8 bit registers
-    attr_reader :a, :b, :c, :d, :e, :f, :h, :l, :f
+    attr_reader :a, :b, :c, :d, :e, :f, :h, :l
     # CPU instruction cycle count
     attr_reader :m
     # 16 bit registers
@@ -55,10 +55,11 @@ module Waterfoul
     def initialize(options = {})
       @pc = 0x0000
       @sp = 0x0000
-      @a = @b = @c = @d = @e = @f = @h = @l = @f = 0x00
-      @m = 0
+      @a = @b = @c = @d = @e = @f = @h = @l = 0x00
       @timer = Timer.new
       @ime = false
+      @halt = false
+      reset_tick
     end
 
     # This method emulates the CPU cycle process. Each instruction is
