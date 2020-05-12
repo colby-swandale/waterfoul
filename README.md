@@ -11,6 +11,9 @@ Make sure to `bundle install` first and install required libraries.
 
 By default the emulator will run the boot rom, if you wish to skip it then add `--skip-boot` as an option.
 
+## Try turning on the --jit and --enable-frozen-string-literal to get max fps
+`RUBYOPT="--enable-frozen-string-literal --jit --jit-max-cache=100000 --jit-min-calls=3" bundle exec exe/waterfoul start <path to rom>`
+
 ## Requirements
 The [sdl2](https://www.libsdl.org/download-2.0.php) library is currenty used to render pixels. Most platforms have packages avaliable, else see [here](https://wiki.libsdl.org/Installation). This library is required and needs to be installed before you can run the emulator.
 
