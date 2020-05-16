@@ -1,6 +1,13 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in waterfoul.gemspec
 gemspec
 
-gem 'stackprof'
+group :development do
+  gem "rake", "~> 13.0"
+  gem "rspec"
+  gem "guard"
+  gem "guard-rspec"
+
+  gem 'byebug', platforms: :mri
+  gem 'stackprof', platforms: :mri
+end
