@@ -8,10 +8,10 @@ on:
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         ruby: [2.5, 2.6, 2.7, jruby, truffleruby]
-    runs-on: ubuntu-latest
     steps:
     - name: Install dependencies
       run: |
