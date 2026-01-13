@@ -11,6 +11,7 @@ module Waterfoul
     WINDOW_RESIZABLE = 0x20
     PIXELFORMAT_ARGB8888 = 0x16362004
     SDL_WINDOW_RESIZABLE = 0x20
+    SDL_WINDOWPOS_UNDEFINED = 0x1FFF0000
 
     # keyboard key maps
     SDL_SCANCODE_RETURN = 40 # start
@@ -22,6 +23,7 @@ module Waterfoul
     SDL_SCANCODE_A = 4 # A
     SDL_SCANCODE_Z = 29 # B
 
+    attach_function :Init, 'SDL_Init', [:uint32], :int
     attach_function :InitSubSystem, 'SDL_InitSubSystem', [ :uint32 ], :int
     attach_function :CreateWindow, 'SDL_CreateWindow', [ :string, :int, :int, :int, :int, :uint32 ], :pointer
     attach_function :CreateRenderer, 'SDL_CreateRenderer', [:pointer, :int, :uint32], :pointer

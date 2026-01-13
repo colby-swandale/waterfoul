@@ -7,9 +7,10 @@ module Waterfoul
     SCREEN_HEIGHT = 144
 
     def initialize
+      SDL.Init 0
       SDL.InitSubSystem SDL::INIT_VIDEO
       @buffer = FFI::MemoryPointer.new :uint32, SCREEN_WIDTH * SCREEN_HEIGHT
-      @window = SDL.CreateWindow 'waterfoul', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL::SDL_WINDOW_RESIZABLE
+      @window = SDL.CreateWindow 'waterfoul', SDL::SDL_WINDOWPOS_UNDEFINED, SDL::SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL::SDL_WINDOW_RESIZABLE
       @renderer = SDL.CreateRenderer @window, -1, 0
       SDL.SetHint "SDL_HINT_RENDER_SCALE_QUALITY",  "2"
       SDL.RenderSetLogicalSize(@renderer, WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -18,6 +19,7 @@ module Waterfoul
     end
 
     def render(framebuffer)
+      SDL.PumpEvents
       @buffer.write_array_of_uint32 framebuffer
       SDL.UpdateTexture @texture, nil, @buffer, SCREEN_WIDTH * 4
       SDL.RenderClear @renderer
