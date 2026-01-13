@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [2.5, 2.6, 2.7, jruby, truffleruby]
+        ruby: [4.0, jruby, truffleruby]
     steps:
     - name: Install dependencies
       run: |
