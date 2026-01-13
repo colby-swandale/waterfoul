@@ -4,18 +4,47 @@ describe Waterfoul::Interrupt do
   before { $mmu = Waterfoul::MMU.new }
   subject { described_class }
 
-  describe '.request_interupt' do
+  describe '.request_interrupt' do
     context 'with INTERRUPT_VBLANK interrupt' do
-      it 'sets bit for VBLANK interupt in IF register' do
+      it 'sets bit 0 in IF register' do
+        subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_VBLANK
+        expect($mmu[0xFF0F]).to eq 0x1
+      end
+    end
+
+    context 'with INTERRUPT_LCDSTAT interrupt' do
+      it 'sets bit 1 in IF register' do
+        subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_LCDSTAT
+        expect($mmu[0xFF0F]).to eq 0x2
+      end
+    end
+
+    context 'with INTERRUPT_TIMER interrupt' do
+      it 'sets bit 2 in IF register' do
+        subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_TIMER
+        expect($mmu[0xFF0F]).to eq 0x4
+      end
+    end
+
+    context 'with INTERRUPT_SERIAL interrupt' do
+      it 'sets bit 3 in IF register' do
+        subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_SERIAL
+        expect($mmu[0xFF0F]).to eq 0x8
+      end
+    end
+
+    context 'with INTERRUPT_JOYPAD interrupt' do
+      it 'sets bit 4 in IF register' do
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_JOYPAD
         expect($mmu[0xFF0F]).to eq 0x10
       end
     end
 
-    context 'with INTERRUPT_TIMER set' do
-      it 'sets bit for timer interrupt in IF register' do
+    context 'when multiple interrupts are requested' do
+      it 'preserves existing interrupt flags' do
+        subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_VBLANK
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_TIMER
-        expect($mmu[0xFF0F]).to eq 0x4
+        expect($mmu[0xFF0F]).to eq 0x5  # bits 0 and 2
       end
     end
   end
@@ -42,8 +71,26 @@ describe Waterfoul::Interrupt do
       before { $mmu[0xFF0F] = 0x3 }
       before { $mmu[0xFFFF] = 0xFF }
 
-      it 'responds with higher priority interrupt' do
+      it 'responds with higher priority interrupt (VBlank)' do
         expect(subject.pending_interrupt).to eq Waterfoul::Interrupt::INTERRUPT_VBLANK
+      end
+    end
+
+    context 'when Timer and Joypad are both pending' do
+      before { $mmu[0xFF0F] = 0x14 }  # bits 2 and 4
+      before { $mmu[0xFFFF] = 0xFF }
+
+      it 'responds with Timer (higher priority than Joypad)' do
+        expect(subject.pending_interrupt).to eq Waterfoul::Interrupt::INTERRUPT_TIMER
+      end
+    end
+
+    context 'when only lower priority interrupt is enabled' do
+      before { $mmu[0xFF0F] = 0x1F }  # all interrupts requested
+      before { $mmu[0xFFFF] = 0x10 }  # only Joypad enabled
+
+      it 'responds with Joypad' do
+        expect(subject.pending_interrupt).to eq Waterfoul::Interrupt::INTERRUPT_JOYPAD
       end
     end
   end

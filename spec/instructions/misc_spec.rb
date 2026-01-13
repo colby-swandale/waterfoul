@@ -12,9 +12,12 @@ describe Waterfoul::CPU do
   end
 
   describe '#halt' do
-    it 'sets the halt flag' do
+    before { $mmu.write_byte 0xFFFF, 0x00 }  # no interrupts enabled
+    before { $mmu.write_byte 0xFF0F, 0x00 }  # no interrupts pending
+
+    it 'sets the halt flag when no pending interrupts' do
       subject.halt
-      expect(subject.halt).to eq true
+      expect(subject.halted?).to eq true
     end
   end
 

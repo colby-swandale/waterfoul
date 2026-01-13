@@ -17,10 +17,23 @@ module Waterfoul
 
       # HALT
       # Halt CPU & LCD display until button pressed.
+      #
+      # When IME=0 and an interrupt is already pending (IE & IF != 0),
+      # the HALT bug occurs: HALT exits immediately but PC fails to
+      # increment for the next instruction fetch, causing the next
+      # byte to be read twice.
       # @flags - - - -
       def halt
-        @pre_halt_interrupt = $mmu.read_memory_byte(0xFF0F)
-        @halt = true
+        ie_reg = $mmu.read_memory_byte(0xFFFF)
+        if_reg = $mmu.read_memory_byte(0xFF0F)
+        interrupt_pending = (ie_reg & if_reg & 0x1F) != 0
+
+        if !@ime && interrupt_pending
+          # HALT bug: PC will not increment for next fetch
+          @halt_bug = true
+        else
+          @halt = true
+        end
       end
 
       # DI

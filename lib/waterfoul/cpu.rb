@@ -60,6 +60,7 @@ module Waterfoul
       @ime = false
       @ime_pending = false
       @halt = false
+      @halt_bug = false
       reset_tick
     end
 
@@ -84,8 +85,12 @@ module Waterfoul
       @timer.tick @m
     end
 
+    # Check if CPU should wake from HALT state.
+    # HALT exits when (IE & IF) != 0 (any enabled interrupt is pending).
     def check_halt
-      @halt = false if @pre_halt_interrupt != $mmu.read_memory_byte(0xFF0F)
+      ie_reg = $mmu.read_memory_byte(0xFFFF)
+      if_reg = $mmu.read_memory_byte(0xFF0F)
+      @halt = false if (ie_reg & if_reg & 0x1F) != 0
     end
 
     def halted?
@@ -103,10 +108,15 @@ module Waterfoul
     end
 
     # fetch the next byte to be executed from memory and increment the program
-    # counter
+    # counter. When the HALT bug is active, PC is not incremented causing
+    # the same byte to be read twice.
     def fetch_instruction
       instruction_byte = $mmu.read_byte @pc
-      @pc = (@pc + 1) & 0xFFFF
+      if @halt_bug
+        @halt_bug = false
+      else
+        @pc = (@pc + 1) & 0xFFFF
+      end
       instruction_byte
     end
 
