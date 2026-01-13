@@ -19,9 +19,36 @@ describe Waterfoul::CPU do
   end
 
   describe '#di' do
-    it 'resets the interupt flag' do
+    it 'disables interrupts immediately' do
       subject.di
       expect(subject.ime).to eq false
+    end
+
+    it 'cancels a pending EI' do
+      # EI followed by DI should not allow interrupts
+      # Per Pan Docs: "ei followed immediately by di does not allow any interrupts between them"
+      subject.set_register :pc, 0x100
+      $mmu.write_byte 0x100, 0x00  # NOP opcode
+
+      subject.ei  # Sets pending
+      subject.di  # Should cancel the pending EI
+
+      subject.step  # Execute NOP
+      expect(subject.ime).to eq false  # Should still be disabled
+    end
+
+    it 'disables interrupts even when they were enabled' do
+      # First enable interrupts
+      subject.set_register :pc, 0x100
+      $mmu.write_byte 0x100, 0x00  # NOP
+      subject.ei
+      subject.step  # IME becomes true
+
+      expect(subject.ime).to eq true
+
+      # Now disable them
+      subject.di
+      expect(subject.ime).to eq false  # Immediate effect
     end
   end
 
@@ -33,8 +60,32 @@ describe Waterfoul::CPU do
   end
 
   describe '#ei' do
-    it 'sets the interupt flag' do
+    it 'does not enable interrupts immediately' do
       subject.ei
+      expect(subject.ime).to eq false
+    end
+
+    it 'enables interrupts after the next instruction executes' do
+      # Set up a NOP instruction at PC
+      subject.set_register :pc, 0x100
+      $mmu.write_byte 0x100, 0x00  # NOP opcode
+
+      subject.ei
+      expect(subject.ime).to eq false
+
+      subject.step  # Execute NOP, then apply pending IME
+      expect(subject.ime).to eq true
+    end
+
+    it 'allows one more instruction to execute before interrupt is serviced' do
+      # This tests the classic EI + HALT pattern
+      subject.set_register :pc, 0x100
+      $mmu.write_byte 0x100, 0x00  # NOP opcode
+
+      subject.ei
+      subject.step  # NOP executes, IME becomes true at end of step
+
+      # Now interrupts are enabled
       expect(subject.ime).to eq true
     end
   end

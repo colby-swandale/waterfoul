@@ -4,10 +4,15 @@ describe Waterfoul::CPU do
   subject { Waterfoul::CPU.new }
 
   describe '#serve_interrupt' do
-    before { subject.ei } # master interrupt enable
     before { $mmu.write_byte 0xFFFF, 0xFF } # enable all interrupts
     before { subject.set_register :sp, 0xFFFE }
-    before { subject.set_register :pc, 0x101 }
+    before { subject.set_register :pc, 0x100 }
+    # EI has a one-instruction delay, so we need to execute one instruction
+    # after EI before interrupts are actually enabled
+    before { $mmu.write_byte 0x100, 0x00 } # NOP at 0x100
+    before { subject.ei }
+    before { subject.step } # Execute NOP, IME becomes true at end of step
+    # Now PC is at 0x101 and IME is true
 
     context 'when no interrupt to serve' do
       it 'does alter the execution path' do

@@ -24,11 +24,12 @@ module Waterfoul
       end
 
       # DI
-      # This instruction disables interrupts but not immediately. Interrupts are
-      # disabled instruction after DI is executed.
+      # This instruction disables interrupts immediately (unlike EI which has
+      # a one-instruction delay). This also cancels any pending EI.
       # @flags - - - -
       def di
         @ime = false
+        @ime_pending = false
       end
 
       # PREFIX CB
@@ -44,11 +45,11 @@ module Waterfoul
 
       # EI
       # Enable interrupts. This intruction enables interrupts but not
-      # immediately. Interrupts are enabled instruction after EI is
-      # executed.
+      # immediately. Interrupts are enabled after the next instruction
+      # is executed.
       # @flags - - - -
       def ei
-        @ime = true
+        @ime_pending = true
       end
 
       # XX

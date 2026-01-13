@@ -58,6 +58,7 @@ module Waterfoul
       @a = @b = @c = @d = @e = @f = @h = @l = 0x00
       @timer = Timer.new
       @ime = false
+      @ime_pending = false
       @halt = false
       reset_tick
     end
@@ -74,6 +75,11 @@ module Waterfoul
       else
         instruction_byte = fetch_instruction
         perform_instruction instruction_byte
+      end
+      # EI has a one-instruction delay before enabling interrupts
+      if @ime_pending
+        @ime = true
+        @ime_pending = false
       end
       @timer.tick @m
     end
