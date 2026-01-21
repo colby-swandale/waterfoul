@@ -24,6 +24,8 @@ module Waterfoul
 
     def initialize
       @framebuffer = Array.new FRAMEBUFFER_SIZE, 0
+      # Store raw color indices (0-3) for BG priority checking
+      @bg_color_indices = Array.new FRAMEBUFFER_SIZE, 0
       @mode = V_BLANK_STATE
       @modeclock = 0
       @vblank_line = 0
@@ -166,6 +168,7 @@ module Waterfoul
 
       map_select = IO::LCDControl.window_map_select
       tiles_select = IO::LCDControl.bg_tile_select
+      palette = $mmu.read_memory_byte 0xFF47
 
       line_adjusted = @window_line
       y_offset = (line_adjusted / 8) * 32
@@ -195,19 +198,14 @@ module Waterfoul
 
           shift = 0x1 << (7 - pixelx)
 
-          pixel = 0
-          if (byte_1 & shift == shift) && (byte_2 & shift == shift)
-            pixel = 3
-          elsif (byte_1 & shift == 0x0) && (byte_2 & shift == shift)
-            pixel = 1
-          elsif (byte_1 & shift == shift) && (byte_2 & shift == 0x0)
-            pixel = 2
-          elsif (byte_1 & shift == 0x0) && (byte_2 & shift == 0x00)
-            pixel = 0
-          end
+          # Correct pixel calculation: byte_1 = low bit, byte_2 = high bit
+          pixel = (byte_1 & shift > 0) ? 1 : 0
+          pixel |= (byte_2 & shift > 0) ? 2 : 0
 
+          color = (palette >> (pixel * 2)) & 0x3
           position = line_width + buffer_addr
-          @framebuffer[position] = rgb(pixel)
+          @bg_color_indices[position] = pixel  # Store raw index for sprite priority
+          @framebuffer[position] = rgb(color)
         end
       end
       @window_line += 1
@@ -220,6 +218,8 @@ module Waterfoul
       return unless IO::LCDControl.obj_display
 
       sprite_size = IO::LCDControl.obj_size
+      obp0 = $mmu.read_memory_byte 0xFF48
+      obp1 = $mmu.read_memory_byte 0xFF49
 
       39.downto(0) do |sprite|
         sprite_offset = sprite * 4
@@ -232,10 +232,12 @@ module Waterfoul
 
         sprite_tile_offset = ($mmu.read_memory_byte(0xFE00 + sprite_offset + 2) & (sprite_size == 16 ? 0xFE : 0xFF)) * 16
         sprite_flags = $mmu.read_memory_byte(0xFE00 + sprite_offset + 3)
-        x_flip = sprite_flags & 0x20 == 0x20 ? true : false
-        y_flip = sprite_flags & 0x40 == 0x40 ? true : false
-        #above_bg = sprite_flags & 0x80 == 0x80 ? true : false
+        x_flip = (sprite_flags & 0x20) != 0
+        y_flip = (sprite_flags & 0x40) != 0
+        bg_priority = (sprite_flags & 0x80) != 0  # If set, sprite behind BG colors 1-3
+        use_obp1 = (sprite_flags & 0x10) != 0     # Palette select
 
+        palette = use_obp1 ? obp1 : obp0
         tiles = 0x8000
         pixel_y = y_flip ? (sprite_size == 16 ? 15 : 7) - (line - sprite_y) : line - sprite_y
 
@@ -256,24 +258,26 @@ module Waterfoul
 
         0.upto(7) do |pixelx|
           shift = 0x1 << (x_flip ? pixelx : 7 - pixelx)
-          pixel = 0
 
-          if (byte_1 & shift == shift) && (byte_2 & shift == shift)
-            pixel = 3
-          elsif (byte_1 & shift == 0x0) && (byte_2 & shift == shift)
-            pixel = 1
-          elsif (byte_1 & shift == shift) && (byte_2 & shift == 0x0)
-            pixel = 2
-          elsif (byte_1 & shift == 0x0) && (byte_2 & shift == 0x00)
-            next
-          end
+          # Correct pixel calculation: byte_1 = low bit, byte_2 = high bit
+          pixel = (byte_1 & shift > 0) ? 1 : 0
+          pixel |= (byte_2 & shift > 0) ? 2 : 0
+
+          # Color 0 is transparent for sprites
+          next if pixel == 0
 
           buffer_x = sprite_x + pixelx
           next if buffer_x < 0 || buffer_x >= Screen::SCREEN_WIDTH
 
           position = line_width + buffer_x
 
-          @framebuffer[position] = rgb(pixel)
+          # BG priority: if set, sprite only shows over BG color 0
+          if bg_priority && @bg_color_indices[position] != 0
+            next
+          end
+
+          color = (palette >> (pixel * 2)) & 0x3
+          @framebuffer[position] = rgb(color)
         end
       end
     end
@@ -330,11 +334,15 @@ module Waterfoul
           pixel |= (byte_2 & shift > 0) ? 2 : 0
           color = (palette >> (pixel * 2)) & 0x3
 
-          @framebuffer[line_width + screen_x] = rgb(color)
+          position = line_width + screen_x
+          @bg_color_indices[position] = pixel  # Store raw index for sprite priority
+          @framebuffer[position] = rgb(color)
         end
       else
         Screen::SCREEN_WIDTH.times do |i|
-          @framebuffer[line_width + i] = 0
+          position = line_width + i
+          @bg_color_indices[position] = 0
+          @framebuffer[position] = 0
         end
       end
     end
