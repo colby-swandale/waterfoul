@@ -9,9 +9,9 @@ module Waterfoul
           lcdc & 0x80 == 0x80
         end
 
-        # map select index
+        # Window tile map select (0x9800 or 0x9C00)
         def window_map_select
-          lcdc & 0x40 == 0x40 ? 1 : 0
+          lcdc & 0x40 == 0x40 ? 0x9C00 : 0x9800
         end
 
         # window show/hide

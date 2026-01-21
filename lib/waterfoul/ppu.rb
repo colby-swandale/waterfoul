@@ -131,6 +131,24 @@ module Waterfoul
       stat = $mmu.read_memory_byte 0xFF41
       new_stat = (stat & 0xFC) | (@mode & 0x3)
       $mmu.write_byte 0xFF41, new_stat
+
+      # Request STAT interrupt based on mode and enable bits
+      request_stat = false
+      case @mode
+      when H_BLANK_STATE
+        # Mode 0 (H-Blank) - bit 3
+        request_stat = (stat & 0x08) != 0
+      when V_BLANK_STATE
+        # Mode 1 (V-Blank) - bit 4
+        request_stat = (stat & 0x10) != 0
+      when OAM_READ_STATE
+        # Mode 2 (OAM) - bit 5
+        request_stat = (stat & 0x20) != 0
+      end
+
+      if request_stat
+        Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
+      end
     end
 
     def render_window
@@ -265,56 +283,57 @@ module Waterfoul
       line_width = line * Screen::SCREEN_WIDTH
 
       if IO::LCDControl.bg_display
-        # tile and map select
         tiles_select = IO::LCDControl.bg_tile_select
         map_select = IO::LCDControl.bg_map_select
-        # x pixel offset
         scx = $mmu.read_memory_byte 0xFF43
-        # y pixel offset
         scy = $mmu.read_memory_byte 0xFF42
-        # line with y offset
-        line_adjusted = (line + scy) & 0xFF
-        # get position of tile row to read
-        y_offset = (line_adjusted / 8) * 32
-        # relative line number in tile
-        tile_line = line_adjusted % 8
-        # relative line number offset
-        tile_line_offset = tile_line * 2
         palette = $mmu.read_memory_byte 0xFF47
-        x = 0
-        while x < 32
-          tile = 0
-          if tiles_select == 0x8800
-            tile = signed_value $mmu.read_byte(map_select + y_offset + x)
-            tile += 128
-          else
-            tile = $mmu.read_byte map_select + y_offset + x
+
+        # Calculate the Y position in the 256x256 background map
+        bg_y = (line + scy) & 0xFF
+        tile_row = bg_y / 8
+        tile_y = bg_y % 8
+        tile_line_offset = tile_y * 2
+
+        # Cache for tile data (avoid re-reading same tile)
+        cached_tile_col = -1
+        byte_1 = 0
+        byte_2 = 0
+
+        # For each pixel on the screen (0-159)
+        Screen::SCREEN_WIDTH.times do |screen_x|
+          # Calculate the X position in the 256x256 background map (with wrap)
+          bg_x = (screen_x + scx) & 0xFF
+          tile_col = bg_x / 8
+          tile_x = bg_x % 8
+
+          # Only fetch new tile data when we move to a different tile
+          if tile_col != cached_tile_col
+            cached_tile_col = tile_col
+            map_offset = tile_row * 32 + tile_col
+
+            if tiles_select == 0x8800
+              tile = signed_value $mmu.read_byte(map_select + map_offset)
+              tile += 128
+            else
+              tile = $mmu.read_byte(map_select + map_offset)
+            end
+
+            tile_address = tiles_select + (tile * 16) + tile_line_offset
+            byte_1 = $mmu.read_byte tile_address
+            byte_2 = $mmu.read_byte(tile_address + 1)
           end
 
-          line_pixel_offset = x * 8
-          tile_select_offset = tile * 16
-          tile_address = tiles_select + tile_select_offset + tile_line_offset
+          # Get the pixel color
+          shift = 0x1 << (7 - tile_x)
+          pixel = (byte_1 & shift > 0) ? 1 : 0
+          pixel |= (byte_2 & shift > 0) ? 2 : 0
+          color = (palette >> (pixel * 2)) & 0x3
 
-          byte_1 = $mmu.read_byte tile_address
-          byte_2 = $mmu.read_byte (tile_address + 1)
-
-          pixelx = 0
-          buffer_addr = line_pixel_offset - scx
-          while pixelx < 8 and buffer_addr < Screen::SCREEN_WIDTH
-            shift = 0x1 << (7 - pixelx)
-            pixel = (byte_1 & shift > 0) ? 1 : 0
-            pixel |= (byte_2 & shift > 0) ? 2 : 0
-            position = line_width + buffer_addr
-            color = (palette >> (pixel * 2)) & 0x3
-
-            @framebuffer[position] = rgb(color)
-            pixelx += 1
-            buffer_addr = line_pixel_offset + pixelx - scx
-          end
-          x += 1
+          @framebuffer[line_width + screen_x] = rgb(color)
         end
       else
-        0.upto(Screen::SCREEN_WIDTH - 1) do |i|
+        Screen::SCREEN_WIDTH.times do |i|
           @framebuffer[line_width + i] = 0
         end
       end
@@ -339,11 +358,17 @@ module Waterfoul
         stat = $mmu.read_memory_byte 0xFF41
 
         if lyc == current_line
-          stat = stat | 0x4
+          # Set coincidence flag (bit 2)
+          stat = stat | 0x04
+          $mmu.write_byte 0xFF41, stat
+          # Request STAT interrupt if LYC interrupt enabled (bit 6)
+          if stat & 0x40 != 0
+            Interrupt.request_interrupt(Interrupt::INTERRUPT_LCDSTAT)
+          end
         else
           stat = stat & 0xFB
+          $mmu.write_byte 0xFF41, stat
         end
-        $mmu.write_byte 0xFF41, stat
       end
     end
 
