@@ -61,7 +61,9 @@ module Waterfoul
           dma_transfer v
           @memory[i] = v
         when 0xFF04 # reset divider register
-          @memory[i] = 0
+          # Writing any value to DIV resets the internal counter
+          # This is handled by the Timer class
+          $timer.reset_div if $timer
         when 0x0...0x8000 # ROM Bank 0 + n
           @cartridge[i] = v
         when 0x8000...0xA000 # Video RAM

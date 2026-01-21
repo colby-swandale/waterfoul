@@ -49,9 +49,13 @@ describe Waterfoul::Timer do
       expect($mmu[0xFF04]).to eq 1
     end
 
-    context 'when DIV register is 255' do
-      before { $mmu.write_byte 0xFF04, 0xFF, hardware_operation: true }
-      it 'resets register to 0 on next increment' do
+    context 'when DIV register wraps around' do
+      it 'wraps from 255 to 0 after full 16-bit counter cycle' do
+        # Run until DIV = 255 (internal counter = 65280-65535)
+        subject.tick(65280)
+        expect($mmu[0xFF04]).to eq 255
+
+        # Run 256 more cycles to wrap the counter
         subject.tick(256)
         expect($mmu[0xFF04]).to eq 0
       end

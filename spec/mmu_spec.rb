@@ -32,9 +32,16 @@ describe Waterfoul::MMU do
   end
 
   describe 'DIV register' do
-    before { subject.write_byte 0xFF04, 0x25, hardware_operation: true }
+    before do
+      $mmu = subject
+      $timer = Waterfoul::Timer.new
+      # Run the timer until DIV is non-zero
+      $timer.tick(256 * 5)  # DIV should be 5
+    end
+
     it 'resets when written to' do
-      subject.write_byte 0xFF04, 0x35
+      expect(subject.read_byte(0xFF04)).to eq 5  # Verify DIV is non-zero first
+      subject.write_byte 0xFF04, 0x35  # Writing any value resets DIV
       expect(subject.read_byte(0xFF04)).to eq 0
     end
   end

@@ -57,6 +57,7 @@ module Waterfoul
       @sp = 0x0000
       @a = @b = @c = @d = @e = @f = @h = @l = 0x00
       @timer = Timer.new
+      $timer = @timer  # Global reference for MMU to reset DIV
       @ime = false
       @ime_pending = false
       @halt = false
