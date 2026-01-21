@@ -31,7 +31,8 @@ describe Waterfoul::CPU do
 
       it 'sets the program counter to 0x50' do
         subject.step
-        expect(subject.pc).to eq 0x51
+        # Interrupt servicing consumes the entire step, PC is at handler start
+        expect(subject.pc).to eq 0x50
       end
 
       it 'saves the current program counter onto the stack' do
@@ -166,43 +167,37 @@ describe Waterfoul::CPU do
     before { subject.ei }
     before { subject.step }  # IME becomes true, PC at 0x101
 
-    # Note: step() serves the interrupt AND executes one instruction from the handler.
-    # Handler addresses are in ROM (0x40, 0x48, etc.) so we can't control the instruction there.
-    # We verify PC is in the expected range and the return address was saved correctly.
+    # Note: Interrupt servicing consumes the entire step.
+    # After serving an interrupt, PC is at the handler address exactly.
 
     it 'jumps to VBlank handler region (0x40+)' do
       $mmu.write_byte 0xFF0F, 0x01
       subject.step
-      expect(subject.pc).to be >= 0x40
-      expect(subject.pc).to be < 0x48
+      expect(subject.pc).to eq 0x40
     end
 
     it 'jumps to LCD STAT handler region (0x48+)' do
       $mmu.write_byte 0xFF0F, 0x02
       subject.step
-      expect(subject.pc).to be >= 0x48
-      expect(subject.pc).to be < 0x50
+      expect(subject.pc).to eq 0x48
     end
 
     it 'jumps to Timer handler region (0x50+)' do
       $mmu.write_byte 0xFF0F, 0x04
       subject.step
-      expect(subject.pc).to be >= 0x50
-      expect(subject.pc).to be < 0x58
+      expect(subject.pc).to eq 0x50
     end
 
     it 'jumps to Serial handler region (0x58+)' do
       $mmu.write_byte 0xFF0F, 0x08
       subject.step
-      expect(subject.pc).to be >= 0x58
-      expect(subject.pc).to be < 0x60
+      expect(subject.pc).to eq 0x58
     end
 
     it 'jumps to Joypad handler region (0x60+)' do
       $mmu.write_byte 0xFF0F, 0x10
       subject.step
-      expect(subject.pc).to be >= 0x60
-      expect(subject.pc).to be < 0x68
+      expect(subject.pc).to eq 0x60
     end
 
     it 'saves return address to stack for VBlank' do

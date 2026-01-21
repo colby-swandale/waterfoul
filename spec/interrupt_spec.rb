@@ -5,38 +5,41 @@ describe Waterfoul::Interrupt do
   subject { described_class }
 
   describe '.request_interrupt' do
+    # Note: IF register (0xFF0F) upper 3 bits always read as 1 on real hardware
+    # So reads return value | 0xE0
+
     context 'with INTERRUPT_VBLANK interrupt' do
       it 'sets bit 0 in IF register' do
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_VBLANK
-        expect($mmu[0xFF0F]).to eq 0x1
+        expect($mmu[0xFF0F]).to eq 0xE1  # 0x01 | 0xE0
       end
     end
 
     context 'with INTERRUPT_LCDSTAT interrupt' do
       it 'sets bit 1 in IF register' do
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_LCDSTAT
-        expect($mmu[0xFF0F]).to eq 0x2
+        expect($mmu[0xFF0F]).to eq 0xE2  # 0x02 | 0xE0
       end
     end
 
     context 'with INTERRUPT_TIMER interrupt' do
       it 'sets bit 2 in IF register' do
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_TIMER
-        expect($mmu[0xFF0F]).to eq 0x4
+        expect($mmu[0xFF0F]).to eq 0xE4  # 0x04 | 0xE0
       end
     end
 
     context 'with INTERRUPT_SERIAL interrupt' do
       it 'sets bit 3 in IF register' do
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_SERIAL
-        expect($mmu[0xFF0F]).to eq 0x8
+        expect($mmu[0xFF0F]).to eq 0xE8  # 0x08 | 0xE0
       end
     end
 
     context 'with INTERRUPT_JOYPAD interrupt' do
       it 'sets bit 4 in IF register' do
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_JOYPAD
-        expect($mmu[0xFF0F]).to eq 0x10
+        expect($mmu[0xFF0F]).to eq 0xF0  # 0x10 | 0xE0
       end
     end
 
@@ -44,7 +47,7 @@ describe Waterfoul::Interrupt do
       it 'preserves existing interrupt flags' do
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_VBLANK
         subject.request_interrupt Waterfoul::Interrupt::INTERRUPT_TIMER
-        expect($mmu[0xFF0F]).to eq 0x5  # bits 0 and 2
+        expect($mmu[0xFF0F]).to eq 0xE5  # (0x01 | 0x04) | 0xE0
       end
     end
   end

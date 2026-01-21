@@ -70,7 +70,11 @@ module Waterfoul
     def step
       reset_tick
       check_halt if @halt
-      serve_interrupt if @ime
+      # Service interrupt if enabled - this consumes the entire step
+      if @ime && serve_interrupt
+        @timer.tick @m
+        return
+      end
       if halted?
         @m = 4
       else
@@ -109,7 +113,7 @@ module Waterfoul
 
     # fetch the next byte to be executed from memory and increment the program
     # counter. When the HALT bug is active, PC is not incremented causing
-    # the same byte to be read twice.
+    # the same byte to be read twice (executed twice for single-byte instructions).
     def fetch_instruction
       instruction_byte = $mmu.read_byte @pc
       if @halt_bug
@@ -135,6 +139,7 @@ module Waterfoul
     end
 
     # perform any interrupts are enabled and have been requested by the program
+    # returns true if an interrupt was serviced, false otherwise
     def serve_interrupt
       interrupt = Interrupt.pending_interrupt
       # skip if there is no interrupt to serve
@@ -161,6 +166,7 @@ module Waterfoul
         $mmu.write_byte(0xFF0F, if_reg & 0xEF)
       end
       @m = 20
+      true
     end
 
     # reset per instruction variables

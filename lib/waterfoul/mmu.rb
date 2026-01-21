@@ -31,6 +31,9 @@ module Waterfoul
 
       if i == 0xFF00
         Input.read_keyboard @memory[i]
+      elsif i == 0xFF0F
+        # IF register: upper 3 bits always read as 1
+        @memory[i] | 0xE0
       elsif i >= 0x8000 && i < 0xA000 or i >= 0xC000 && i < 0xE000 or i >= 0xFE00
         @memory[i]
       elsif i < 0x8000 or i >= 0xA000 && i < 0xC000
