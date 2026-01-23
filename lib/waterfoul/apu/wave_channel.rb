@@ -21,6 +21,7 @@ module Waterfoul
         @dac_enabled = false
         @volume_code = 0
         @frequency = 0
+        @period = 4096  # (2048 - 0) * 2, cached for performance
         @timer = 0
         @position = 0
         @sample_buffer = 0
@@ -30,16 +31,24 @@ module Waterfoul
         @wave_ram = Array.new(16, 0)
       end
 
-      # Tick the channel by one T-cycle.
-      def tick
+      # Tick the channel by multiple T-cycles (batched for performance).
+      # @param cycles [Integer] Number of T-cycles to advance
+      def tick(cycles = 1)
         return unless @enabled
 
-        @timer -= 1
-        return unless @timer <= 0
+        @timer -= cycles
+        return if @timer > 0
 
-        @timer = (2048 - @frequency) * 2
-        @position = (@position + 1) & 0x1F
-        @sample_dirty = true  # Mark for lazy extraction in output()
+        # Timer expired - advance position for each expiration
+        if @period > 0
+          while @timer <= 0
+            @timer += @period
+            @position = (@position + 1) & 0x1F
+            @sample_dirty = true
+          end
+        else
+          @timer = 0
+        end
       end
 
       # Get the current output sample (0-15).
@@ -97,12 +106,14 @@ module Waterfoul
       # @param value [Integer] Register value
       def write_nr33(value)
         @frequency = (@frequency & 0x700) | value
+        @period = (2048 - @frequency) * 2
       end
 
       # Write to NR34 register (Trigger/Length enable/Frequency high).
       # @param value [Integer] Register value
       def write_nr34(value)
         @frequency = (@frequency & 0xFF) | ((value & 0x07) << 8)
+        @period = (2048 - @frequency) * 2
         @length_counter.enabled = (value & 0x40) != 0
 
         trigger if (value & 0x80) != 0
@@ -171,6 +182,7 @@ module Waterfoul
         @dac_enabled = false
         @volume_code = 0
         @frequency = 0
+        @period = 4096
         @timer = 0
         @position = 0
         @sample_buffer = 0
@@ -184,7 +196,7 @@ module Waterfoul
       def trigger
         @enabled = true if @dac_enabled
         @length_counter.trigger
-        @timer = (2048 - @frequency) * 2
+        @timer = @period
         @position = 0
       end
     end

@@ -22,8 +22,12 @@ module Waterfoul
     # Audio sample rate
     SAMPLE_RATE = 44_100
 
-    # T-cycles per audio sample
-    CYCLES_PER_SAMPLE = GB_CLOCK_RATE.to_f / SAMPLE_RATE
+    # Fixed-point precision for sample counter (use 1024 for efficient bit shifts)
+    SAMPLE_COUNTER_PRECISION = 1024
+
+    # T-cycles per audio sample (fixed-point integer for performance)
+    # = (GB_CLOCK_RATE * PRECISION) / SAMPLE_RATE = 97390
+    CYCLES_PER_SAMPLE_FP = (GB_CLOCK_RATE * SAMPLE_COUNTER_PRECISION) / SAMPLE_RATE
 
     # Frame sequencer rate (512 Hz, clocked every 8192 T-cycles)
     FRAME_SEQUENCER_CYCLES = 8192
@@ -82,7 +86,7 @@ module Waterfoul
       # Timing
       @frame_sequencer_step = 0
       @frame_sequencer_counter = 0
-      @sample_counter = 0.0
+      @sample_counter = 0  # Fixed-point integer counter
 
       # Audio buffer (pre-allocated to avoid GC pressure)
       @sample_buffer = Array.new(BUFFER_CAPACITY, 0)
@@ -109,31 +113,18 @@ module Waterfoul
         clock_frame_sequencer
       end
 
-      # Batch sample counter updates
-      @sample_counter += cycles
-      while @sample_counter >= CYCLES_PER_SAMPLE
-        @sample_counter -= CYCLES_PER_SAMPLE
+      # Batch sample counter updates (fixed-point integer math)
+      @sample_counter += cycles * SAMPLE_COUNTER_PRECISION
+      while @sample_counter >= CYCLES_PER_SAMPLE_FP
+        @sample_counter -= CYCLES_PER_SAMPLE_FP
         generate_sample
       end
 
-      # Cache enabled states to avoid repeated method calls
-      ch1_enabled = @channel1.enabled
-      ch2_enabled = @channel2.enabled
-      ch3_enabled = @channel3.enabled
-      ch4_enabled = @channel4.enabled
-
-      # Skip channel ticking entirely if all disabled
-      return unless ch1_enabled || ch2_enabled || ch3_enabled || ch4_enabled
-
-      # Only tick enabled channels (avoids method call + return overhead)
-      i = 0
-      while i < cycles
-        @channel1.tick if ch1_enabled
-        @channel2.tick if ch2_enabled
-        @channel3.tick if ch3_enabled
-        @channel4.tick if ch4_enabled
-        i += 1
-      end
+      # Batch tick all enabled channels (O(1) instead of O(cycles))
+      @channel1.tick(cycles) if @channel1.enabled
+      @channel2.tick(cycles) if @channel2.enabled
+      @channel3.tick(cycles) if @channel3.enabled
+      @channel4.tick(cycles) if @channel4.enabled
     end
 
     # Read an APU register.
@@ -259,7 +250,7 @@ module Waterfoul
 
       @frame_sequencer_step = 0
       @frame_sequencer_counter = 0
-      @sample_counter = 0.0
+      @sample_counter = 0
       @buffer_index = 0
       @enabled = true
 

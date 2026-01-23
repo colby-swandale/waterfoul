@@ -25,6 +25,9 @@ module Waterfoul
     # Pre-computed bit masks for tile pixels (avoid shift per pixel)
     BIT_MASKS = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01].freeze
 
+    # Pre-computed reversed bit masks for x-flipped sprites
+    BIT_MASKS_REVERSED = BIT_MASKS.reverse.freeze
+
     # Pre-computed RGB values (avoid case statement per pixel)
     RGB_COLORS = [0xFFFFFFFF, 0xFFA8A8A8, 0xFF555555, 0x00000000].freeze
 
@@ -41,6 +44,10 @@ module Waterfoul
       # Pre-allocate sprite palette arrays to reduce GC pressure
       @obp0_colors = Array.new(4, 0)
       @obp1_colors = Array.new(4, 0)
+      # Pre-allocate sprite scanline cache (which sprites are visible on each line)
+      # Each entry is an array of sprite indices that overlap that scanline
+      @sprite_scanlines = Array.new(144) { [] }
+      @sprite_cache_obj_size_16 = false
     end
 
     def step(cycles = 1)
@@ -69,6 +76,9 @@ module Waterfoul
           reset_current_line
           update_stat_mode
           compare_lylc
+          # Update sprite cache when screen is re-enabled
+          lcdc = $mmu.read_memory_byte(0xFF40)
+          update_sprite_cache((lcdc & 0x04) != 0)
         end
       else
         @screen_enabled = false
@@ -80,6 +90,40 @@ module Waterfoul
     end
 
     private
+
+    # Update sprite scanline cache at start of each frame
+    # Pre-computes which sprites are visible on each scanline to avoid
+    # checking all 40 sprites every scanline
+    def update_sprite_cache(obj_size_16)
+      @sprite_cache_obj_size_16 = obj_size_16
+      sprite_height = obj_size_16 ? 16 : 8
+
+      # Clear all scanline lists
+      line = 0
+      while line < 144
+        @sprite_scanlines[line].clear
+        line += 1
+      end
+
+      # Populate with visible sprites (in reverse order for correct priority)
+      sprite = 39
+      while sprite >= 0
+        sprite_offset = sprite << 2
+        sprite_y = $mmu.read_memory_byte(0xFE00 + sprite_offset) - 16
+
+        # Add sprite to all scanlines it overlaps
+        scan_line = sprite_y
+        end_line = sprite_y + sprite_height
+        while scan_line < end_line
+          if scan_line >= 0 && scan_line < 144
+            @sprite_scanlines[scan_line] << sprite
+          end
+          scan_line += 1
+        end
+
+        sprite -= 1
+      end
+    end
 
     def vram
       @modeclock -= VRAM_SCANLINE_TIME
@@ -129,13 +173,37 @@ module Waterfoul
         update_stat_mode
         reset_current_line
         @vblank_line = 0
+        # Update sprite cache at start of new frame
+        lcdc = $mmu.read_memory_byte(0xFF40)
+        update_sprite_cache((lcdc & 0x04) != 0)
       end
     end
 
     def scanline
-      render_bg
-      render_window
-      render_sprites
+      # Cache LCDC register once per scanline (eliminates ~10 MMU reads)
+      lcdc = $mmu.read_memory_byte(0xFF40)
+
+      # Extract all LCDC flags locally
+      bg_enabled = (lcdc & 0x01) != 0
+      obj_enabled = (lcdc & 0x02) != 0
+      obj_size_16 = (lcdc & 0x04) != 0
+      bg_tile_select = (lcdc & 0x10) != 0 ? 0x8000 : 0x8800
+      bg_map_select = (lcdc & 0x08) != 0 ? 0x9C00 : 0x9800
+      window_enabled = (lcdc & 0x20) != 0
+      window_map_select = (lcdc & 0x40) != 0 ? 0x9C00 : 0x9800
+
+      # Cache scroll registers once per scanline
+      scx = $mmu.read_memory_byte(0xFF43)
+      scy = $mmu.read_memory_byte(0xFF42)
+      wx = $mmu.read_memory_byte(0xFF4B) - 7
+      wy = $mmu.read_memory_byte(0xFF4A)
+
+      # Cache palette once per scanline
+      palette = $mmu.read_memory_byte(0xFF47)
+
+      render_bg(bg_enabled, bg_tile_select, bg_map_select, scx, scy, palette)
+      render_window(window_enabled, bg_tile_select, window_map_select, wx, wy, palette)
+      render_sprites(obj_enabled, obj_size_16)
     end
 
     def update_stat_mode
@@ -162,22 +230,15 @@ module Waterfoul
       end
     end
 
-    def render_window
+    def render_window(window_enabled, tiles_select, map_select, window_pos_x, window_pos_y, palette)
       line = current_line
       line_width = line * Screen::SCREEN_WIDTH
       # dont render if the window is outside the bounds of the screen or
       # if the LCDC window enable bit flag is not set
-      return if @window_line > 143 || !IO::LCDControl.window_enabled?
-
-      window_pos_x = $mmu.read_memory_byte(0xFF4B) - 7
-      window_pos_y = $mmu.read_memory_byte(0xFF4A)
+      return if @window_line > 143 || !window_enabled
 
       # don't render if the window is outside the bounds of the screen
       return if window_pos_x > 159 || window_pos_y > 143 || window_pos_y > line
-
-      map_select = IO::LCDControl.window_map_select
-      tiles_select = IO::LCDControl.bg_tile_select
-      palette = $mmu.read_memory_byte 0xFF47
 
       # Pre-compute palette lookup table
       palette_colors = [
@@ -231,13 +292,17 @@ module Waterfoul
       @window_line += 1
     end
 
-    def render_sprites
+    def render_sprites(obj_enabled, obj_size_16)
+      return unless obj_enabled
+
       line = current_line
       line_width = line * Screen::SCREEN_WIDTH
 
-      return unless IO::LCDControl.obj_display
+      # Get pre-filtered sprites for this scanline (already in correct priority order)
+      visible_sprites = @sprite_scanlines[line]
+      return if visible_sprites.empty?
 
-      sprite_size = IO::LCDControl.obj_size
+      sprite_size = obj_size_16 ? 16 : 8
       obp0 = $mmu.read_memory_byte 0xFF48
       obp1 = $mmu.read_memory_byte 0xFF49
 
@@ -252,88 +317,81 @@ module Waterfoul
       @obp1_colors[2] = RGB_COLORS[(obp1 >> 4) & 0x3]
       @obp1_colors[3] = RGB_COLORS[(obp1 >> 6) & 0x3]
 
-      sprite_mask = sprite_size == 16 ? 0xFE : 0xFF
+      sprite_mask = obj_size_16 ? 0xFE : 0xFF
       tiles = 0x8000
 
-      # Use while loop counting down (39 to 0) for proper sprite priority
-      sprite = 39
-      while sprite >= 0
+      # Only process sprites that overlap this scanline (pre-filtered, in priority order)
+      sprite_idx = 0
+      sprite_count = visible_sprites.size
+      while sprite_idx < sprite_count
+        sprite = visible_sprites[sprite_idx]
         sprite_offset = sprite << 2          # sprite * 4
 
         sprite_y = $mmu.read_memory_byte(0xFE00 + sprite_offset) - 16
-        if sprite_y <= line && (sprite_y + sprite_size) > line
-          sprite_x = $mmu.read_memory_byte(0xFE00 + sprite_offset + 1) - 8
+        sprite_x = $mmu.read_memory_byte(0xFE00 + sprite_offset + 1) - 8
 
-          if sprite_x >= -7 && sprite_x < Screen::SCREEN_WIDTH
-            sprite_tile_offset = ($mmu.read_memory_byte(0xFE00 + sprite_offset + 2) & sprite_mask) << 4
-            sprite_flags = $mmu.read_memory_byte(0xFE00 + sprite_offset + 3)
-            x_flip = (sprite_flags & 0x20) != 0
-            y_flip = (sprite_flags & 0x40) != 0
-            bg_priority = (sprite_flags & 0x80) != 0  # If set, sprite behind BG colors 1-3
-            use_obp1 = (sprite_flags & 0x10) != 0     # Palette select
+        if sprite_x >= -7 && sprite_x < Screen::SCREEN_WIDTH
+          sprite_tile_offset = ($mmu.read_memory_byte(0xFE00 + sprite_offset + 2) & sprite_mask) << 4
+          sprite_flags = $mmu.read_memory_byte(0xFE00 + sprite_offset + 3)
+          x_flip = (sprite_flags & 0x20) != 0
+          y_flip = (sprite_flags & 0x40) != 0
+          bg_priority = (sprite_flags & 0x80) != 0  # If set, sprite behind BG colors 1-3
+          use_obp1 = (sprite_flags & 0x10) != 0     # Palette select
 
-            palette_colors = use_obp1 ? @obp1_colors : @obp0_colors
-            pixel_y = y_flip ? (sprite_size == 16 ? 15 : 7) - (line - sprite_y) : line - sprite_y
+          palette_colors = use_obp1 ? @obp1_colors : @obp0_colors
+          pixel_y = y_flip ? (obj_size_16 ? 15 : 7) - (line - sprite_y) : line - sprite_y
 
-            pixel_y_2 = 0
-            offset = 0
+          pixel_y_2 = 0
+          offset = 0
 
-            if sprite_size == 16 && (pixel_y >= 8)
-              pixel_y_2 = (pixel_y - 8) << 1   # * 2
-              offset = 16
-            else
-              pixel_y_2 = pixel_y << 1          # * 2
-            end
+          if obj_size_16 && (pixel_y >= 8)
+            pixel_y_2 = (pixel_y - 8) << 1   # * 2
+            offset = 16
+          else
+            pixel_y_2 = pixel_y << 1          # * 2
+          end
 
-            tile_address = tiles + sprite_tile_offset + pixel_y_2 + offset
+          tile_address = tiles + sprite_tile_offset + pixel_y_2 + offset
 
-            byte_1 = $mmu.read_byte tile_address
-            byte_2 = $mmu.read_byte (tile_address + 1)
+          byte_1 = $mmu.read_byte tile_address
+          byte_2 = $mmu.read_byte (tile_address + 1)
 
-            pixelx = 0
-            while pixelx < 8
-              # Use pre-computed bit mask with flip handling
-              # BIT_MASKS[i] = 0x1 << (7 - i), so:
-              # - Not flipped: need 0x1 << (7 - pixelx) = BIT_MASKS[pixelx]
-              # - Flipped: need 0x1 << pixelx = BIT_MASKS[7 - pixelx]
-              mask = BIT_MASKS[x_flip ? 7 - pixelx : pixelx]
+          # Select mask array based on flip (eliminates conditional per pixel)
+          masks = x_flip ? BIT_MASKS_REVERSED : BIT_MASKS
 
-              pixel = ((byte_1 & mask) != 0 ? 1 : 0) | ((byte_2 & mask) != 0 ? 2 : 0)
+          pixelx = 0
+          while pixelx < 8
+            mask = masks[pixelx]
 
-              # Color 0 is transparent for sprites
-              if pixel != 0
-                buffer_x = sprite_x + pixelx
+            pixel = ((byte_1 & mask) != 0 ? 1 : 0) | ((byte_2 & mask) != 0 ? 2 : 0)
 
-                if buffer_x >= 0 && buffer_x < Screen::SCREEN_WIDTH
-                  position = line_width + buffer_x
+            # Color 0 is transparent for sprites
+            if pixel != 0
+              buffer_x = sprite_x + pixelx
 
-                  # BG priority: if set, sprite only shows over BG color 0
-                  unless bg_priority && @bg_color_indices[position] != 0
-                    @framebuffer[position] = palette_colors[pixel]
-                  end
+              if buffer_x >= 0 && buffer_x < Screen::SCREEN_WIDTH
+                position = line_width + buffer_x
+
+                # BG priority: if set, sprite only shows over BG color 0
+                unless bg_priority && @bg_color_indices[position] != 0
+                  @framebuffer[position] = palette_colors[pixel]
                 end
               end
-
-              pixelx += 1
             end
+
+            pixelx += 1
           end
         end
 
-        sprite -= 1
+        sprite_idx += 1
       end
     end
 
-    def render_bg
+    def render_bg(bg_enabled, tiles_select, map_select, scx, scy, palette)
       line = current_line
       line_width = line * Screen::SCREEN_WIDTH
 
-      if IO::LCDControl.bg_display
-        tiles_select = IO::LCDControl.bg_tile_select
-        map_select = IO::LCDControl.bg_map_select
-        scx = $mmu.read_memory_byte 0xFF43
-        scy = $mmu.read_memory_byte 0xFF42
-        palette = $mmu.read_memory_byte 0xFF47
-
+      if bg_enabled
         # Pre-compute palette lookup table (4 entries)
         palette_colors = [
           RGB_COLORS[palette & 0x3],

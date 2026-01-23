@@ -19,20 +19,28 @@ module Waterfoul
         @clock_shift = 0
         @width_mode = false  # false = 15-bit, true = 7-bit
         @divisor_code = 0
+        @period = 8  # DIVISORS[0] << 0, cached for performance
         @timer = 0
         @lfsr = 0x7FFF  # 15-bit LFSR, all 1s
       end
 
-      # Tick the channel by one T-cycle.
-      def tick
+      # Tick the channel by multiple T-cycles (batched for performance).
+      # @param cycles [Integer] Number of T-cycles to advance
+      def tick(cycles = 1)
         return unless @enabled
 
-        @timer -= 1
-        return unless @timer <= 0
+        @timer -= cycles
+        return if @timer > 0
 
-        @timer = DIVISORS[@divisor_code] << @clock_shift
-
-        clock_lfsr
+        # Timer expired - clock LFSR for each expiration
+        if @period > 0
+          while @timer <= 0
+            @timer += @period
+            clock_lfsr
+          end
+        else
+          @timer = 0
+        end
       end
 
       # Get the current output sample (0-15).
@@ -80,6 +88,7 @@ module Waterfoul
         @clock_shift = (value >> 4) & 0x0F
         @width_mode = (value & 0x08) != 0
         @divisor_code = value & 0x07
+        @period = DIVISORS[@divisor_code] << @clock_shift
       end
 
       # Write to NR44 register (Trigger/Length enable).
@@ -130,6 +139,7 @@ module Waterfoul
         @clock_shift = 0
         @width_mode = false
         @divisor_code = 0
+        @period = 8
         @timer = 0
         @lfsr = 0x7FFF
         @length_counter.reset
@@ -142,7 +152,7 @@ module Waterfoul
         @enabled = true
         @length_counter.trigger
         @volume_envelope.trigger
-        @timer = DIVISORS[@divisor_code] << @clock_shift
+        @timer = @period
         @lfsr = 0x7FFF
 
         disable unless @volume_envelope.dac_enabled?

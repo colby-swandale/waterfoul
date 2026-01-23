@@ -27,19 +27,29 @@ module Waterfoul
         @enabled = false
         @duty = 0
         @frequency = 0
+        @period = 8192  # (2048 - 0) * 4, cached for performance
         @timer = 0
         @duty_position = 0
       end
 
-      # Tick the channel by one T-cycle.
-      def tick
+      # Tick the channel by multiple T-cycles (batched for performance).
+      # @param cycles [Integer] Number of T-cycles to advance
+      def tick(cycles = 1)
         return unless @enabled
 
-        @timer -= 1
-        return unless @timer <= 0
+        @timer -= cycles
+        return if @timer > 0
 
-        @timer = (2048 - @frequency) * 4
-        @duty_position = (@duty_position + 1) & 0x07
+        # Timer expired - calculate how many duty advances
+        # Handle multiple underflows if cycles > period
+        if @period > 0
+          while @timer <= 0
+            @timer += @period
+            @duty_position = (@duty_position + 1) & 0x07
+          end
+        else
+          @timer = 0
+        end
       end
 
       # Get the current output sample (0-15).
@@ -73,7 +83,10 @@ module Waterfoul
 
         result = catch(:overflow) do
           new_freq = @frequency_sweep.clock
-          @frequency = new_freq if new_freq
+          if new_freq
+            @frequency = new_freq
+            @period = (2048 - @frequency) * 4
+          end
           nil
         end
 
@@ -110,12 +123,14 @@ module Waterfoul
       # @param value [Integer] Register value
       def write_nr3(value)
         @frequency = (@frequency & 0x700) | value
+        @period = (2048 - @frequency) * 4
       end
 
       # Write to NRx4 register (Trigger/Length enable/Frequency high).
       # @param value [Integer] Register value
       def write_nr4(value)
         @frequency = (@frequency & 0xFF) | ((value & 0x07) << 8)
+        @period = (2048 - @frequency) * 4
         @length_counter.enabled = (value & 0x40) != 0
 
         trigger if (value & 0x80) != 0
@@ -173,6 +188,7 @@ module Waterfoul
         @enabled = false
         @duty = 0
         @frequency = 0
+        @period = 8192
         @timer = 0
         @duty_position = 0
         @length_counter.reset
@@ -186,7 +202,7 @@ module Waterfoul
         @enabled = true
         @length_counter.trigger
         @volume_envelope.trigger
-        @timer = (2048 - @frequency) * 4
+        @timer = @period
 
         if @has_sweep
           overflow = @frequency_sweep.trigger(@frequency)
