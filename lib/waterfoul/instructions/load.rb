@@ -437,9 +437,10 @@ module Waterfoul
         @pc += 1
         result = @sp + n
 
-        reset_flags Z_FLAG, N_FLAG
+        reset_z_flag
+        reset_lazy_n
         (@sp ^ n ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@sp ^ n ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
+        (@sp ^ n ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
 
         self.hl = result & 0xFFFF
       end

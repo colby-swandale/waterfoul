@@ -10,8 +10,8 @@ module Waterfoul
         result = @b + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x0 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x0 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @b = result & 0xFF
       end
@@ -20,8 +20,8 @@ module Waterfoul
         result = @b - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @b = result & 0xFF
       end
@@ -30,8 +30,8 @@ module Waterfoul
         result = @c + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x0 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x0 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @c = result & 0xFF
       end
@@ -40,8 +40,8 @@ module Waterfoul
         result = @c - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @c = result & 0xFF
       end
@@ -50,8 +50,8 @@ module Waterfoul
         result = @d + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x0 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x0 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @d = result & 0xFF
       end
@@ -60,8 +60,8 @@ module Waterfoul
         result = @d - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @d = result & 0xFF
       end
@@ -70,8 +70,8 @@ module Waterfoul
         result = @e + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x0 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x0 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @e = result & 0xFF
       end
@@ -80,8 +80,8 @@ module Waterfoul
         result = @e - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @e = result & 0xFF
       end
@@ -90,8 +90,8 @@ module Waterfoul
         result = @h + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x0 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x0 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @h = result & 0xFF
       end
@@ -100,8 +100,8 @@ module Waterfoul
         result = @h - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @h = result & 0xFF
       end
@@ -110,8 +110,8 @@ module Waterfoul
         result = @l + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x0 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x0 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @l = result & 0xFF
       end
@@ -120,8 +120,8 @@ module Waterfoul
         result = @l - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @l = result & 0xFF
       end
@@ -130,8 +130,8 @@ module Waterfoul
         result = @a - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -140,8 +140,8 @@ module Waterfoul
         result = @a + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x0 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x0 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -151,8 +151,8 @@ module Waterfoul
         result = val + 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0x00 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        result & 0xF == 0x00 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         $mmu.write_byte self.hl, (result & 0xFF)
       end
@@ -162,13 +162,15 @@ module Waterfoul
         result = val - 1
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        result & 0xF == 0xF ? set_h_flag : reset_h_flag
-        set_n_flag
+        result & 0xF == 0xF ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         $mmu.write_byte self.hl, (result & 0xFF)
       end
 
       def daa
+        # Materialize lazy H/N flags before reading them
+        materialize_lazy_flags
         temp_a = @a
 
         if @f & N_FLAG == 0x00
@@ -189,7 +191,8 @@ module Waterfoul
           end
         end
 
-        reset_flags H_FLAG, Z_FLAG
+        reset_lazy_h
+        reset_z_flag
 
         if temp_a & 0x100 == 0x100
           set_flags C_FLAG
@@ -204,12 +207,14 @@ module Waterfoul
 
       def scf
         set_c_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
       end
 
       def cpl
         @a = @a ^ 0xFF
-        set_flags N_FLAG, H_FLAG
+        set_lazy_n
+        set_lazy_h
       end
 
       # CCF
@@ -218,7 +223,8 @@ module Waterfoul
       # @flags - 0 0 C
       def ccf
         @f & C_FLAG == C_FLAG ? reset_c_flag : set_c_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
       end
 
       def add_a_b
@@ -226,8 +232,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @b ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @b ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ @b ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -237,8 +243,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @c ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @c ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ @c ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -248,8 +254,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @d ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @d ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ @d ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -259,8 +265,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @e ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @e ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ @e ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -270,8 +276,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @h ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @h ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ @h ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -281,8 +287,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @l ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @l ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ @l ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -293,8 +299,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ val ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ val ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ val ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -304,8 +310,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @a ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @a ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ @a ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -316,8 +322,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (@b & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (@b & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -328,8 +334,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (@c & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (@c & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -340,8 +346,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (@d & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (@d & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -352,8 +358,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (@e & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (@e & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -364,8 +370,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (@h & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (@h & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -376,8 +382,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (@l & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (@l & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -389,8 +395,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        ((@a & 0xF) + (val & 0xF) + carry) > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        ((@a & 0xF) + (val & 0xF) + carry) > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -401,8 +407,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (@a & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (@a & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -412,8 +418,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @b ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @b ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ @b ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -423,8 +429,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @c ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @c ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ @c ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -434,8 +440,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @d ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @d ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ @d ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -445,8 +451,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @e ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @e ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ @e ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -456,8 +462,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @h ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @h ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ @h ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -467,8 +473,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @l ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @l ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ @l ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -479,8 +485,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ val ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ val ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ val ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -490,8 +496,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ @a ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ @a ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ @a ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -502,8 +508,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (@b & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (@b & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -514,8 +520,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (@c & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (@c & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -526,8 +532,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (@d & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (@d & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -538,8 +544,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (@e & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (@e & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -550,8 +556,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (@h & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (@h & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -562,8 +568,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (@l & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (@l & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -575,8 +581,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (val & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (val & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -587,8 +593,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0x0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (@a & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (@a & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -597,8 +603,9 @@ module Waterfoul
         result = @a & @b
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -607,8 +614,9 @@ module Waterfoul
         result = @a & @c
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -617,8 +625,9 @@ module Waterfoul
         result = @a & @d
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -627,8 +636,9 @@ module Waterfoul
         result = @a & @e
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -637,8 +647,9 @@ module Waterfoul
         result = @a & @h
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -647,8 +658,9 @@ module Waterfoul
         result = @a & @l
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -658,8 +670,9 @@ module Waterfoul
         result = @a & val
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -668,8 +681,9 @@ module Waterfoul
         result = @a & @a
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -678,7 +692,9 @@ module Waterfoul
         result = @a ^ @b
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -687,7 +703,9 @@ module Waterfoul
         result = @a ^ @c
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -696,7 +714,9 @@ module Waterfoul
         result = @a ^ @d
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -705,7 +725,9 @@ module Waterfoul
         result = @a ^ @e
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -714,7 +736,9 @@ module Waterfoul
         result = @a ^ @h
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -723,7 +747,9 @@ module Waterfoul
         result = @a ^ @l
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -733,7 +759,9 @@ module Waterfoul
         result = @a ^ val
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -742,7 +770,9 @@ module Waterfoul
         result = @a ^ @a
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -751,7 +781,9 @@ module Waterfoul
         result = @a | @b
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -760,7 +792,9 @@ module Waterfoul
         result = @a | @c
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -769,7 +803,9 @@ module Waterfoul
         result = @a | @d
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -778,7 +814,9 @@ module Waterfoul
         result = @a | @e
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -787,7 +825,9 @@ module Waterfoul
         result = @a | @h
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -796,7 +836,9 @@ module Waterfoul
         result = @a | @l
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -806,7 +848,9 @@ module Waterfoul
         result = @a | val
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -815,7 +859,9 @@ module Waterfoul
         result = @a | @a
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -825,8 +871,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < @b ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def cp_c
@@ -834,8 +880,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < @c ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def cp_d
@@ -843,8 +889,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < @d ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def cp_e
@@ -852,8 +898,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < @e ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def cp_h
@@ -861,8 +907,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < @h ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def cp_l
@@ -870,8 +916,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < @l ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def cp_hl
@@ -880,8 +926,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < val ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def cp_a
@@ -889,8 +935,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < @a ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
       def add_a_d8
@@ -900,8 +946,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ val ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ val ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a ^ val ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -915,8 +961,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result > 0xFF ? set_c_flag : reset_c_flag
-        (@a & 0xF) + (val & 0xF) + carry > 0xF ? set_h_flag : reset_h_flag
-        reset_n_flag
+        (@a & 0xF) + (val & 0xF) + carry > 0xF ? set_lazy_h : reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -928,8 +974,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         (@a ^ val ^ result) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@a ^ val ^ result) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a ^ val ^ result) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -943,8 +989,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         result < 0 ? set_c_flag : reset_c_flag
-        (@a & 0xF) - (val & 0xF) - carry < 0 ? set_h_flag : reset_h_flag
-        set_n_flag
+        (@a & 0xF) - (val & 0xF) - carry < 0 ? set_lazy_h : reset_lazy_h
+        set_lazy_n
 
         @a = result & 0xFF
       end
@@ -956,8 +1002,9 @@ module Waterfoul
         result = @a & val
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, N_FLAG
-        set_flags H_FLAG
+        reset_c_flag
+        reset_lazy_n
+        set_lazy_h
 
         @a = result & 0xFF
       end
@@ -969,7 +1016,9 @@ module Waterfoul
         result = @a ^ val
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -981,7 +1030,9 @@ module Waterfoul
         result = @a | val
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags C_FLAG, H_FLAG, N_FLAG
+        reset_c_flag
+        reset_lazy_h
+        reset_lazy_n
 
         @a = result & 0xFF
       end
@@ -994,8 +1045,8 @@ module Waterfoul
 
         result & 0xFF == 0x0 ? set_z_flag : reset_z_flag
         @a < val ? set_c_flag : reset_c_flag
-        (result & 0xF) > (@a & 0xF) ? set_h_flag : reset_h_flag
-        set_n_flag
+        (result & 0xF) > (@a & 0xF) ? set_lazy_h : reset_lazy_h
+        set_lazy_n
       end
 
 
@@ -1022,9 +1073,9 @@ module Waterfoul
       def add_hl_bc
         result = self.hl + self.bc
 
-        reset_n_flag
+        reset_lazy_n
         result & 0x10000 == 0x10000 ? set_c_flag : reset_c_flag
-        (self.hl ^ self.bc ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_h_flag : reset_h_flag
+        (self.hl ^ self.bc ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_lazy_h : reset_lazy_h
 
         self.hl = result & 0xFFFF
       end
@@ -1032,9 +1083,9 @@ module Waterfoul
       def add_hl_de
         result = self.hl + self.de
 
-        reset_n_flag
+        reset_lazy_n
         result & 0x10000 == 0x10000 ? set_c_flag : reset_c_flag
-        (self.hl ^ self.de ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_h_flag : reset_h_flag
+        (self.hl ^ self.de ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_lazy_h : reset_lazy_h
 
         self.hl = result & 0xFFFF
       end
@@ -1042,9 +1093,9 @@ module Waterfoul
       def add_hl_hl
         result = self.hl + self.hl
 
-        reset_n_flag
+        reset_lazy_n
         result & 0x10000 == 0x10000 ? set_c_flag : reset_c_flag
-        (self.hl ^ self.hl ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_h_flag : reset_h_flag
+        (self.hl ^ self.hl ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_lazy_h : reset_lazy_h
 
         self.hl = result & 0xFFFF
       end
@@ -1052,9 +1103,9 @@ module Waterfoul
       def add_hl_sp
         result = self.hl + @sp
 
-        reset_n_flag
+        reset_lazy_n
         result & 0x10000 == 0x10000 ? set_c_flag : reset_c_flag
-        (self.hl ^ @sp ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_h_flag : reset_h_flag
+        (self.hl ^ @sp ^ (result & 0xFFFF)) & 0x1000 == 0x1000 ? set_lazy_h : reset_lazy_h
 
         self.hl = result & 0xFFFF
       end
@@ -1081,9 +1132,10 @@ module Waterfoul
 
         result = @sp + val
 
-        reset_flags Z_FLAG, N_FLAG
+        reset_z_flag
+        reset_lazy_n
         (@sp ^ val ^ (result & 0xFFFF)) & 0x100 == 0x100 ? set_c_flag : reset_c_flag
-        (@sp ^ val ^ (result & 0xFFFF)) & 0x10 == 0x10 ? set_h_flag : reset_h_flag
+        (@sp ^ val ^ (result & 0xFFFF)) & 0x10 == 0x10 ? set_lazy_h : reset_lazy_h
 
         @sp = result & 0xFFFF
       end

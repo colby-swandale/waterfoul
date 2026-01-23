@@ -6,7 +6,9 @@ module Waterfoul
       # @flags 0 0 0 C
       def rla
         @a = rotate_left @a, true
-        reset_flags Z_FLAG, N_FLAG, H_FLAG
+        reset_z_flag
+        reset_lazy_n
+        reset_lazy_h
       end
 
       # RLCA
@@ -14,7 +16,9 @@ module Waterfoul
       # @flags 0 0 0 C
       def rlca
         @a = rotate_left @a
-        reset_flags Z_FLAG, N_FLAG, H_FLAG
+        reset_z_flag
+        reset_lazy_n
+        reset_lazy_h
       end
 
       # RRCA
@@ -22,7 +26,9 @@ module Waterfoul
       # @flags 0 0 0 C
       def rrca
         @a = rotate_right @a
-        reset_flags Z_FLAG, N_FLAG, H_FLAG
+        reset_z_flag
+        reset_lazy_n
+        reset_lazy_h
       end
 
       # RRA
@@ -30,7 +36,9 @@ module Waterfoul
       # @flags 0 0 0 C
       def rra
         @a = rotate_right @a, true
-        reset_flags Z_FLAG, N_FLAG, H_FLAG
+        reset_z_flag
+        reset_lazy_n
+        reset_lazy_h
       end
     end
   end

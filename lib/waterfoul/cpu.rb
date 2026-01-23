@@ -43,7 +43,13 @@ module Waterfoul
     include Instructions::Prefix
 
     # 8 bit registers
-    attr_reader :a, :b, :c, :d, :e, :f, :h, :l
+    attr_reader :a, :b, :c, :d, :e, :h, :l
+
+    # F register accessor - materializes lazy H/N flags before returning
+    def f
+      materialize_lazy_flags
+      @f
+    end
     # CPU instruction cycle count
     attr_reader :m
     # 16 bit registers
@@ -62,6 +68,10 @@ module Waterfoul
       @ime_pending = false
       @halt = false
       @halt_bug = false
+      # Lazy flag state - H and N flags are deferred until needed (DAA or PUSH AF)
+      # nil means use @f directly, true/false means use lazy value
+      @lazy_h = nil
+      @lazy_n = nil
       reset_tick
     end
 

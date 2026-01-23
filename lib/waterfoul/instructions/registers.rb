@@ -5,12 +5,16 @@ module Waterfoul
       PAIRED_REGISTERS = %i{ bc de hl af }
 
       def af
+        materialize_lazy_flags
         (@a << 8) | @f
       end
 
       def af=(val)
         @a = (val >> 8) & 0xFF
         @f = val & 0xF0
+        # Clear lazy flags since @f was just set directly
+        @lazy_h = nil
+        @lazy_n = nil
       end
 
       def bc
@@ -82,6 +86,44 @@ module Waterfoul
 
       def set_flags(*flags)
         @f |= flags.inject(:|)
+      end
+
+      # Lazy H flag setters - defer until DAA or PUSH AF
+      def set_lazy_h
+        @lazy_h = true
+      end
+
+      def reset_lazy_h
+        @lazy_h = false
+      end
+
+      # Lazy N flag setters - defer until DAA or PUSH AF
+      def set_lazy_n
+        @lazy_n = true
+      end
+
+      def reset_lazy_n
+        @lazy_n = false
+      end
+
+      # Merge lazy H/N flags into @f when needed (DAA or PUSH AF)
+      def materialize_lazy_flags
+        unless @lazy_h.nil?
+          if @lazy_h
+            @f |= H_FLAG
+          else
+            @f &= H_FLAG ^ 0xFF
+          end
+          @lazy_h = nil
+        end
+        unless @lazy_n.nil?
+          if @lazy_n
+            @f |= N_FLAG
+          else
+            @f &= N_FLAG ^ 0xFF
+          end
+          @lazy_n = nil
+        end
       end
 
       def set_stack_pointer(sp)

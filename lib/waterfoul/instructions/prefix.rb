@@ -5,7 +5,8 @@ module Waterfoul
         @b = rotate_left @b
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -14,7 +15,8 @@ module Waterfoul
         @c = rotate_left @c
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -23,7 +25,8 @@ module Waterfoul
         @d = rotate_left @d
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -32,7 +35,8 @@ module Waterfoul
         @e = rotate_left @e
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -41,7 +45,8 @@ module Waterfoul
         @h = rotate_left @h
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -50,7 +55,8 @@ module Waterfoul
         @l = rotate_left @l
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -60,7 +66,8 @@ module Waterfoul
         val = rotate_left val
 
         val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         $mmu.write_byte self.hl, val
 
@@ -71,7 +78,8 @@ module Waterfoul
         @a = rotate_left @a
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -80,7 +88,8 @@ module Waterfoul
         @b = rotate_right @b
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -89,7 +98,8 @@ module Waterfoul
         @c = rotate_right @c
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -98,7 +108,8 @@ module Waterfoul
         @d = rotate_right @d
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -107,7 +118,8 @@ module Waterfoul
         @e = rotate_right @e
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -116,7 +128,8 @@ module Waterfoul
         @h = rotate_right @h
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -125,7 +138,8 @@ module Waterfoul
         @l = rotate_right @l
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -135,7 +149,8 @@ module Waterfoul
         new_val = rotate_right val
 
         new_val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         $mmu.write_byte self.hl, new_val
 
@@ -146,7 +161,8 @@ module Waterfoul
         @a = rotate_right @a
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -155,7 +171,8 @@ module Waterfoul
         @b = rotate_left @b, true
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -164,7 +181,8 @@ module Waterfoul
         @c = rotate_left @c, true
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -173,7 +191,8 @@ module Waterfoul
         @d = rotate_left @d, true
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -182,7 +201,8 @@ module Waterfoul
         @e = rotate_left @e, true
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -191,7 +211,8 @@ module Waterfoul
         @h = rotate_left @h, true
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -200,7 +221,8 @@ module Waterfoul
         @l = rotate_left @l, true
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -212,7 +234,8 @@ module Waterfoul
         $mmu.write_byte self.hl, new_val
 
         new_val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 4
       end
@@ -221,7 +244,8 @@ module Waterfoul
         @a = rotate_left @a, true
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -230,7 +254,8 @@ module Waterfoul
         @b = rotate_right @b, true
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -239,7 +264,8 @@ module Waterfoul
         @c = rotate_right @c, true
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -248,7 +274,8 @@ module Waterfoul
         @d = rotate_right @d, true
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -257,7 +284,8 @@ module Waterfoul
         @e = rotate_right @e, true
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -266,7 +294,8 @@ module Waterfoul
         @h = rotate_right @h, true
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -275,7 +304,8 @@ module Waterfoul
         @l = rotate_right @l, true
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -287,7 +317,8 @@ module Waterfoul
         $mmu.write_byte self.hl, new_val
 
         new_val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 4
       end
@@ -296,7 +327,8 @@ module Waterfoul
         @a = rotate_right @a, true
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -305,7 +337,8 @@ module Waterfoul
         @b = cb_rotate_left @b
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -314,7 +347,8 @@ module Waterfoul
         @c = cb_rotate_left @c
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -323,7 +357,8 @@ module Waterfoul
         @d = cb_rotate_left @d
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -332,7 +367,8 @@ module Waterfoul
         @e = cb_rotate_left @e
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -341,7 +377,8 @@ module Waterfoul
         @h = cb_rotate_left @h
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -350,7 +387,8 @@ module Waterfoul
         @l = cb_rotate_left @l
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -362,7 +400,8 @@ module Waterfoul
         $mmu.write_byte self.hl, new_val
 
         new_val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 3
       end
@@ -371,7 +410,8 @@ module Waterfoul
         @a = cb_rotate_left @a
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         @m = 2
       end
@@ -380,7 +420,8 @@ module Waterfoul
         @b = cb_rotate_right @b, true
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -388,7 +429,8 @@ module Waterfoul
         @c = cb_rotate_right @c, true
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -396,7 +438,8 @@ module Waterfoul
         @d = cb_rotate_right @d, true
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -404,7 +447,8 @@ module Waterfoul
         @e = cb_rotate_right @e, true
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -412,7 +456,8 @@ module Waterfoul
         @h = cb_rotate_right @h, true
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -420,7 +465,8 @@ module Waterfoul
         @l = cb_rotate_right @l, true
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -429,7 +475,8 @@ module Waterfoul
         new_val = cb_rotate_right val, true
 
         new_val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         $mmu.write_byte self.hl, new_val
         @m = 3
@@ -439,7 +486,8 @@ module Waterfoul
         @a = cb_rotate_right @a, true
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -447,7 +495,9 @@ module Waterfoul
         @b = ((@b << 4) & 0xFF) | (@b >> 4)
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         @m = 2
       end
@@ -456,7 +506,9 @@ module Waterfoul
         @c = ((@c << 4) & 0xFF) | (@c >> 4)
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         @m = 2
       end
@@ -465,7 +517,9 @@ module Waterfoul
         @d = ((@d << 4) & 0xFF) | (@d >> 4)
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         @m = 2
       end
@@ -474,7 +528,9 @@ module Waterfoul
         @e = ((@e << 4) & 0xFF) | (@e >> 4)
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         @m = 2
       end
@@ -483,7 +539,9 @@ module Waterfoul
         @h = ((@h << 4) & 0xFF) | (@h >> 4)
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         @m = 2
       end
@@ -492,7 +550,9 @@ module Waterfoul
         @l = ((@l << 4) & 0xFF) | (@l >> 4)
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         @m = 2
       end
@@ -502,7 +562,9 @@ module Waterfoul
         new_val = ((val << 4) & 0xFF) | (val >> 4)
 
         new_val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         $mmu.write_byte self.hl, new_val
 
@@ -513,7 +575,9 @@ module Waterfoul
         @a = ((@a << 4) & 0xFF) | (@a >> 4)
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG, C_FLAG
+        reset_lazy_n
+        reset_lazy_h
+        reset_c_flag
 
         @m = 2
       end
@@ -522,7 +586,8 @@ module Waterfoul
         @b = cb_rotate_right @b
 
         @b & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -530,7 +595,8 @@ module Waterfoul
         @c = cb_rotate_right @c
 
         @c & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -538,7 +604,8 @@ module Waterfoul
         @d = cb_rotate_right @d
 
         @d & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -546,7 +613,8 @@ module Waterfoul
         @e = cb_rotate_right @e
 
         @e & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -554,7 +622,8 @@ module Waterfoul
         @h = cb_rotate_right @h
 
         @h & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -562,7 +631,8 @@ module Waterfoul
         @l = cb_rotate_right @l
 
         @l & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -571,7 +641,8 @@ module Waterfoul
         new_val = cb_rotate_right val
 
         new_val & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
 
         $mmu.write_byte self.hl, new_val
         @m = 2
@@ -581,7 +652,8 @@ module Waterfoul
         @a = cb_rotate_right @a
 
         @a & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_flags N_FLAG, H_FLAG
+        reset_lazy_n
+        reset_lazy_h
         @m = 2
       end
 
@@ -589,8 +661,8 @@ module Waterfoul
         bit = @b & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -599,8 +671,8 @@ module Waterfoul
         bit = @c & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -609,8 +681,8 @@ module Waterfoul
         bit = @d & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -619,8 +691,8 @@ module Waterfoul
         bit = @e & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -629,8 +701,8 @@ module Waterfoul
         bit = @h & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -639,8 +711,8 @@ module Waterfoul
         bit = @l & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -650,8 +722,8 @@ module Waterfoul
         bit = val & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -660,8 +732,8 @@ module Waterfoul
         bit = @a & BIT_0 == BIT_0 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -670,8 +742,8 @@ module Waterfoul
         bit = @b & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -680,8 +752,8 @@ module Waterfoul
         bit = @c & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -690,8 +762,8 @@ module Waterfoul
         bit = @d & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -700,8 +772,8 @@ module Waterfoul
         bit = @e & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -710,8 +782,8 @@ module Waterfoul
         bit = @h & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -720,8 +792,8 @@ module Waterfoul
         bit = @l & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -731,8 +803,8 @@ module Waterfoul
         bit = val & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -741,8 +813,8 @@ module Waterfoul
         bit = @a & BIT_1 == BIT_1 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -751,8 +823,8 @@ module Waterfoul
         bit = @b & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -761,8 +833,8 @@ module Waterfoul
         bit = @c & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -771,8 +843,8 @@ module Waterfoul
         bit = @d & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -781,8 +853,8 @@ module Waterfoul
         bit = @e & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -791,8 +863,8 @@ module Waterfoul
         bit = @h & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -801,8 +873,8 @@ module Waterfoul
         bit = @l & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -812,8 +884,8 @@ module Waterfoul
         bit = val & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -822,8 +894,8 @@ module Waterfoul
         bit = @a & BIT_2 == BIT_2 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -832,8 +904,8 @@ module Waterfoul
         bit = @b & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -842,8 +914,8 @@ module Waterfoul
         bit = @c & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -852,8 +924,8 @@ module Waterfoul
         bit = @d & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -862,8 +934,8 @@ module Waterfoul
         bit = @e & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -872,8 +944,8 @@ module Waterfoul
         bit = @h & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -882,8 +954,8 @@ module Waterfoul
         bit = @l & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -893,8 +965,8 @@ module Waterfoul
         bit = val & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -903,8 +975,8 @@ module Waterfoul
         bit = @a & BIT_3 == BIT_3 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -913,8 +985,8 @@ module Waterfoul
         bit = @b & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -923,8 +995,8 @@ module Waterfoul
         bit = @c & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -933,8 +1005,8 @@ module Waterfoul
         bit = @d & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -943,8 +1015,8 @@ module Waterfoul
         bit = @e & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -953,8 +1025,8 @@ module Waterfoul
         bit = @h & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -963,8 +1035,8 @@ module Waterfoul
         bit = @l & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -974,8 +1046,8 @@ module Waterfoul
         bit = val & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -984,8 +1056,8 @@ module Waterfoul
         bit = @a & BIT_4 == BIT_4 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -994,8 +1066,8 @@ module Waterfoul
         bit = @b & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1004,8 +1076,8 @@ module Waterfoul
         bit = @c & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1014,8 +1086,8 @@ module Waterfoul
         bit = @d & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1024,8 +1096,8 @@ module Waterfoul
         bit = @e & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1034,8 +1106,8 @@ module Waterfoul
         bit = @h & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1044,8 +1116,8 @@ module Waterfoul
         bit = @l & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1055,8 +1127,8 @@ module Waterfoul
         bit = val & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1065,8 +1137,8 @@ module Waterfoul
         bit = @a & BIT_5 == BIT_5 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1075,8 +1147,8 @@ module Waterfoul
         bit = @b & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1085,8 +1157,8 @@ module Waterfoul
         bit = @c & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1095,8 +1167,8 @@ module Waterfoul
         bit = @d & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1105,8 +1177,8 @@ module Waterfoul
         bit = @e & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1115,8 +1187,8 @@ module Waterfoul
         bit = @h & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1125,8 +1197,8 @@ module Waterfoul
         bit = @l & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1136,8 +1208,8 @@ module Waterfoul
         bit = val & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1146,8 +1218,8 @@ module Waterfoul
         bit = @a & BIT_6 == BIT_6 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1156,8 +1228,8 @@ module Waterfoul
         bit = @b & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1166,8 +1238,8 @@ module Waterfoul
         bit = @c & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1176,8 +1248,8 @@ module Waterfoul
         bit = @d & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1186,8 +1258,8 @@ module Waterfoul
         bit = @e & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1196,8 +1268,8 @@ module Waterfoul
         bit = @h & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1206,8 +1278,8 @@ module Waterfoul
         bit = @l & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1217,8 +1289,8 @@ module Waterfoul
         bit = val & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
@@ -1227,8 +1299,8 @@ module Waterfoul
         bit = @a & BIT_7 == BIT_7 ? 1 : 0
 
         bit & 0xFF == 0x0 ? set_z_flag : reset_z_flag
-        reset_n_flag
-        set_h_flag
+        reset_lazy_n
+        set_lazy_h
 
         @m = 2
       end
