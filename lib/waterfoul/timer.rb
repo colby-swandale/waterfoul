@@ -28,21 +28,35 @@ module Waterfoul
     end
 
     def tick(cycles = 0)
-      cycles.times do
-        tick_once
+      return if cycles == 0
+
+      # Cache TAC once per batch
+      tac = $mmu.read_memory_byte(0xFF07)
+      timer_enabled = (tac & 0x04) != 0
+      bit_mask = timer_enabled ? TIMA_BIT_MASK[tac & 0x03] : 0
+
+      old_div = @internal_counter >> 8
+
+      i = 0
+      while i < cycles
+        old_counter = @internal_counter
+        @internal_counter = (@internal_counter + 1) & 0xFFFF
+
+        # Only check TIMA on potential falling edges when timer is enabled
+        if timer_enabled
+          old_bit = (old_counter & bit_mask) != 0
+          new_bit = (@internal_counter & bit_mask) != 0
+          inc_tima_register if old_bit && !new_bit
+        end
+
+        i += 1
       end
-    end
 
-    # Process a single T-state
-    def tick_once
-      old_counter = @internal_counter
-      @internal_counter = (@internal_counter + 1) & 0xFFFF
-
-      # Update DIV register (bits 8-15 of internal counter)
-      update_div
-
-      # Check for TIMA increment (falling edge of selected bit)
-      update_tima(old_counter)
+      # Write DIV only if upper byte changed
+      new_div = @internal_counter >> 8
+      if new_div != old_div
+        $mmu.write_byte(0xFF04, new_div & 0xFF, hardware_operation: true)
+      end
     end
 
     # Called when DIV register (0xFF04) is written to - resets internal counter

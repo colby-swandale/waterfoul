@@ -31,6 +31,9 @@ module Waterfoul
     # Audio buffer size (number of samples)
     BUFFER_SIZE = 1024
 
+    # Pre-allocated buffer capacity (stereo samples, so 2x for L+R)
+    BUFFER_CAPACITY = 4096
+
     # Register addresses
     NR10 = 0xFF10  # CH1 Sweep
     NR11 = 0xFF11  # CH1 Length/Duty
@@ -81,8 +84,9 @@ module Waterfoul
       @frame_sequencer_counter = 0
       @sample_counter = 0.0
 
-      # Audio buffer
-      @sample_buffer = []
+      # Audio buffer (pre-allocated to avoid GC pressure)
+      @sample_buffer = Array.new(BUFFER_CAPACITY, 0)
+      @buffer_index = 0
       @enabled = true
 
       # High-pass filter state (removes DC offset)
@@ -96,9 +100,30 @@ module Waterfoul
     # @param cycles [Integer] Number of T-cycles to advance
     def tick(cycles)
       return unless @enabled
+      return if cycles == 0
 
-      cycles.times do
-        tick_once
+      # Batch frame sequencer counter updates
+      @frame_sequencer_counter += cycles
+      while @frame_sequencer_counter >= FRAME_SEQUENCER_CYCLES
+        @frame_sequencer_counter -= FRAME_SEQUENCER_CYCLES
+        clock_frame_sequencer
+      end
+
+      # Batch sample counter updates
+      @sample_counter += cycles
+      while @sample_counter >= CYCLES_PER_SAMPLE
+        @sample_counter -= CYCLES_PER_SAMPLE
+        generate_sample
+      end
+
+      # Tick channels (use while loop to avoid block allocation)
+      i = 0
+      while i < cycles
+        @channel1.tick
+        @channel2.tick
+        @channel3.tick
+        @channel4.tick
+        i += 1
       end
     end
 
@@ -193,14 +218,14 @@ module Waterfoul
     # Check if samples are ready to be played.
     # @return [Boolean] true if buffer has enough samples
     def samples_ready?
-      @sample_buffer.size >= BUFFER_SIZE
+      @buffer_index >= BUFFER_SIZE
     end
 
     # Get and clear the sample buffer.
     # @return [Array<Integer>] Stereo samples (interleaved L/R)
     def flush_samples
-      samples = @sample_buffer
-      @sample_buffer = []
+      samples = @sample_buffer[0, @buffer_index]
+      @buffer_index = 0
       samples
     end
 
@@ -226,7 +251,7 @@ module Waterfoul
       @frame_sequencer_step = 0
       @frame_sequencer_counter = 0
       @sample_counter = 0.0
-      @sample_buffer = []
+      @buffer_index = 0
       @enabled = true
 
       # Reset high-pass filter
@@ -237,28 +262,6 @@ module Waterfoul
     end
 
     private
-
-    def tick_once
-      # Tick all channels
-      @channel1.tick
-      @channel2.tick
-      @channel3.tick
-      @channel4.tick
-
-      # Frame sequencer
-      @frame_sequencer_counter += 1
-      if @frame_sequencer_counter >= FRAME_SEQUENCER_CYCLES
-        @frame_sequencer_counter = 0
-        clock_frame_sequencer
-      end
-
-      # Sample generation
-      @sample_counter += 1
-      if @sample_counter >= CYCLES_PER_SAMPLE
-        @sample_counter -= CYCLES_PER_SAMPLE
-        generate_sample
-      end
-    end
 
     def clock_frame_sequencer
       case @frame_sequencer_step
@@ -339,8 +342,10 @@ module Waterfoul
       left_sample = (left * 2048).to_i.clamp(-32768, 32767)
       right_sample = (right * 2048).to_i.clamp(-32768, 32767)
 
-      @sample_buffer << left_sample
-      @sample_buffer << right_sample
+      # Use index-based writing to avoid array growth allocations
+      @sample_buffer[@buffer_index] = left_sample
+      @sample_buffer[@buffer_index + 1] = right_sample
+      @buffer_index += 2
     end
 
     def read_nr52
