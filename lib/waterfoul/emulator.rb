@@ -29,5 +29,23 @@ module Waterfoul
         $apu.queue_audio if $apu
       end
     end
+
+    # Run for a specific number of frames (useful for profiling)
+    def run_frames(frame_count)
+      frames = 0
+      while frames < frame_count
+        @cpu.step
+        cycles = @cpu.m
+        @ppu.step cycles
+        $apu.tick(cycles) if $apu
+        if @ppu.vblank?
+          @screen.render @ppu.framebuffer
+          $apu.queue_audio if $apu
+          frames += 1
+          print "\rFrame #{frames}/#{frame_count}" if frames % 10 == 0
+        end
+      end
+      puts "\nCompleted #{frame_count} frames"
+    end
   end
 end

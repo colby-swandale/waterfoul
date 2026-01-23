@@ -21,4 +21,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "thor"
   spec.add_dependency "ffi"
+  spec.add_dependency "stackprof"
 end

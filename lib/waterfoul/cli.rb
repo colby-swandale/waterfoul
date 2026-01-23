@@ -4,18 +4,48 @@ module Waterfoul
   class CLI < Thor
     desc 'start ROM', 'start the emulator'
     option :skip_boot
-    option :stackprof, :type => :boolean
+    option :stackprof, type: :boolean, desc: 'Enable CPU profiling with stackprof'
+    option :profile_frames, type: :numeric, desc: 'Stop after N frames (for profiling)'
     def start(rom_file)
       emu = Waterfoul::Emulator.new rom_file, options
 
-      if options.has_key?('stackprof')
+      if options[:stackprof]
         require 'stackprof'
-        StackProf.start(mode: :cpu)
+        output_file = 'stackprof.dump'
+
+        puts "StackProf profiling enabled. Results will be saved to #{output_file}"
+        if options[:profile_frames]
+          puts "Will stop after #{options[:profile_frames]} frames"
+        else
+          puts "Press Ctrl+C to stop and save profile"
+        end
+
+        # Handle Ctrl+C to save profile
+        trap('INT') do
+          puts "\nStopping profiler..."
+          StackProf.stop
+          results = StackProf.results
+          File.write(output_file, Marshal.dump(results))
+          puts "Profile saved to #{output_file}"
+          puts "View with: stackprof #{output_file} --text --limit 30"
+          exit(0)
+        end
+
+        StackProf.start(mode: :cpu, interval: 1000, raw: true)
         begin
-          emu.run
+          if options[:profile_frames]
+            emu.run_frames(options[:profile_frames])
+          else
+            emu.run
+          end
         ensure
           StackProf.stop
-          StackProf.results('stackprof.dump')
+          results = StackProf.results
+          if results
+            File.write(output_file, Marshal.dump(results))
+            puts "\nProfile saved to #{output_file}"
+            puts "View with: stackprof #{output_file} --text --limit 30"
+          end
         end
       else
         emu.run
