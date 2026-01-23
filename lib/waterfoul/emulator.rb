@@ -25,6 +25,7 @@ module Waterfoul
         cycles = @cpu.m
         @ppu.step cycles
         $apu.tick(cycles) if $apu
+        Input.tick(cycles)
         @screen.render @ppu.framebuffer if @ppu.vblank?
         $apu.queue_audio if $apu
       end
@@ -38,6 +39,7 @@ module Waterfoul
         cycles = @cpu.m
         @ppu.step cycles
         $apu.tick(cycles) if $apu
+        Input.tick(cycles)
         if @ppu.vblank?
           @screen.render @ppu.framebuffer
           $apu.queue_audio if $apu
