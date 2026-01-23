@@ -24,6 +24,7 @@ module Waterfoul
         @timer = 0
         @position = 0
         @sample_buffer = 0
+        @sample_dirty = true  # Lazy sample extraction
 
         # Wave RAM (16 bytes = 32 samples)
         @wave_ram = Array.new(16, 0)
@@ -38,15 +39,7 @@ module Waterfoul
 
         @timer = (2048 - @frequency) * 2
         @position = (@position + 1) & 0x1F
-
-        # Read the sample from wave RAM
-        byte_index = @position >> 1
-        @sample_buffer = @wave_ram[byte_index]
-        @sample_buffer = if (@position & 1) == 0
-                           (@sample_buffer >> 4) & 0x0F
-                         else
-                           @sample_buffer & 0x0F
-                         end
+        @sample_dirty = true  # Mark for lazy extraction in output()
       end
 
       # Get the current output sample (0-15).
@@ -54,6 +47,18 @@ module Waterfoul
       def output
         return 0 unless @enabled
         return 0 unless @dac_enabled
+
+        # Lazy sample extraction - only compute when needed
+        if @sample_dirty
+          byte_index = @position >> 1
+          sample = @wave_ram[byte_index]
+          @sample_buffer = if (@position & 1) == 0
+                             (sample >> 4) & 0x0F
+                           else
+                             sample & 0x0F
+                           end
+          @sample_dirty = false
+        end
 
         @sample_buffer >> VOLUME_SHIFTS[@volume_code]
       end
@@ -169,6 +174,7 @@ module Waterfoul
         @timer = 0
         @position = 0
         @sample_buffer = 0
+        @sample_dirty = true
         @length_counter.reset
         # Wave RAM is not cleared on reset
       end

@@ -12,6 +12,15 @@ module Waterfoul
     INTERRUPT_SERIAL  = 0x8
     INTERRUPT_JOYPAD  = 0x10
 
+    # Pre-computed priority lookup (highest to lowest priority)
+    INTERRUPT_PRIORITY = [
+      INTERRUPT_VBLANK,
+      INTERRUPT_LCDSTAT,
+      INTERRUPT_TIMER,
+      INTERRUPT_SERIAL,
+      INTERRUPT_JOYPAD
+    ].freeze
+
     #
     def self.request_interrupt(interrupt)
       if_reg = $mmu.read_memory_byte IF_REG_MEM_LOC
@@ -21,21 +30,15 @@ module Waterfoul
     def self.pending_interrupt
       ie_reg = $mmu.read_memory_byte IE_REG_MEM_LOC
       if_reg = $mmu.read_memory_byte IF_REG_MEM_LOC
-      pending_interrupts = if_reg & ie_reg
+      pending = ie_reg & if_reg
 
-      if pending_interrupts & INTERRUPT_VBLANK == INTERRUPT_VBLANK
-        INTERRUPT_VBLANK
-      elsif pending_interrupts & INTERRUPT_LCDSTAT == INTERRUPT_LCDSTAT
-        INTERRUPT_LCDSTAT
-      elsif pending_interrupts & INTERRUPT_TIMER == INTERRUPT_TIMER
-        INTERRUPT_TIMER
-      elsif pending_interrupts & INTERRUPT_SERIAL == INTERRUPT_SERIAL
-        INTERRUPT_SERIAL
-      elsif pending_interrupts & INTERRUPT_JOYPAD == INTERRUPT_JOYPAD
-        INTERRUPT_JOYPAD
-      else
-        INTERRUPT_NONE
+      return INTERRUPT_NONE if pending == 0
+
+      INTERRUPT_PRIORITY.each do |interrupt|
+        return interrupt if (pending & interrupt) != 0
       end
+
+      INTERRUPT_NONE
     end
   end
 end

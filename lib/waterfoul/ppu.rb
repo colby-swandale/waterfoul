@@ -38,6 +38,9 @@ module Waterfoul
       @auxillary_modeclock = 0
       @screen_enabled = true
       @window_line = 0
+      # Pre-allocate sprite palette arrays to reduce GC pressure
+      @obp0_colors = Array.new(4, 0)
+      @obp1_colors = Array.new(4, 0)
     end
 
     def step(cycles = 1)
@@ -238,19 +241,16 @@ module Waterfoul
       obp0 = $mmu.read_memory_byte 0xFF48
       obp1 = $mmu.read_memory_byte 0xFF49
 
-      # Pre-compute palette lookup tables for both palettes
-      obp0_colors = [
-        RGB_COLORS[obp0 & 0x3],
-        RGB_COLORS[(obp0 >> 2) & 0x3],
-        RGB_COLORS[(obp0 >> 4) & 0x3],
-        RGB_COLORS[(obp0 >> 6) & 0x3]
-      ]
-      obp1_colors = [
-        RGB_COLORS[obp1 & 0x3],
-        RGB_COLORS[(obp1 >> 2) & 0x3],
-        RGB_COLORS[(obp1 >> 4) & 0x3],
-        RGB_COLORS[(obp1 >> 6) & 0x3]
-      ]
+      # Update pre-allocated palette arrays (avoids array allocation each scanline)
+      @obp0_colors[0] = RGB_COLORS[obp0 & 0x3]
+      @obp0_colors[1] = RGB_COLORS[(obp0 >> 2) & 0x3]
+      @obp0_colors[2] = RGB_COLORS[(obp0 >> 4) & 0x3]
+      @obp0_colors[3] = RGB_COLORS[(obp0 >> 6) & 0x3]
+
+      @obp1_colors[0] = RGB_COLORS[obp1 & 0x3]
+      @obp1_colors[1] = RGB_COLORS[(obp1 >> 2) & 0x3]
+      @obp1_colors[2] = RGB_COLORS[(obp1 >> 4) & 0x3]
+      @obp1_colors[3] = RGB_COLORS[(obp1 >> 6) & 0x3]
 
       sprite_mask = sprite_size == 16 ? 0xFE : 0xFF
       tiles = 0x8000
@@ -272,7 +272,7 @@ module Waterfoul
             bg_priority = (sprite_flags & 0x80) != 0  # If set, sprite behind BG colors 1-3
             use_obp1 = (sprite_flags & 0x10) != 0     # Palette select
 
-            palette_colors = use_obp1 ? obp1_colors : obp0_colors
+            palette_colors = use_obp1 ? @obp1_colors : @obp0_colors
             pixel_y = y_flip ? (sprite_size == 16 ? 15 : 7) - (line - sprite_y) : line - sprite_y
 
             pixel_y_2 = 0

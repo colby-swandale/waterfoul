@@ -1,18 +1,17 @@
 module Waterfoul
   class Input
-    # Cache keyboard state, update every N cycles or once per frame
-    # SDL.PumpEvents is expensive - called on every 0xFF00 read
-    # 8192 cycles = ~8-9 polls/frame (still very responsive for 60Hz games)
+    # Cache keyboard state, update every N cycles
+    # SDL.PumpEvents is expensive - avoid calling on every 0xFF00 read
+    # 8192 cycles = ~8-9 polls/frame (sufficient for 60Hz games)
     POLL_INTERVAL = 8192
 
     SDL.InitSubSystem(SDL::INIT_KEYBOARD)
 
     @keyboard_state = nil
-    @last_joyp = 0
     @cycles_since_poll = POLL_INTERVAL  # Start ready to poll
 
     class << self
-      attr_accessor :keyboard_state, :last_joyp, :cycles_since_poll
+      attr_accessor :keyboard_state, :cycles_since_poll
     end
 
     def self.tick(cycles)
@@ -20,10 +19,9 @@ module Waterfoul
     end
 
     def self.read_keyboard(joyp)
-      # Only poll SDL when interval elapsed OR joyp selection changed
-      if @cycles_since_poll >= POLL_INTERVAL || joyp != @last_joyp
+      # Only poll SDL when interval elapsed
+      if @cycles_since_poll >= POLL_INTERVAL
         @cycles_since_poll = 0
-        @last_joyp = joyp
         SDL.PumpEvents
         keyboard = SDL.GetKeyboardState(nil)
         @keyboard_state = keyboard.read_array_of_uint8(229)
