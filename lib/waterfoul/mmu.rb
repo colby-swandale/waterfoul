@@ -34,6 +34,10 @@ module Waterfoul
       elsif i == 0xFF0F
         # IF register: upper 3 bits always read as 1
         @memory[i] | 0xE0
+      elsif i >= 0xFF10 && i <= 0xFF3F
+        # APU registers and Wave RAM
+        return $apu.read_register(i) if $apu
+        @memory[i]
       elsif i >= 0x8000 && i < 0xA000 or i >= 0xC000 && i < 0xE000 or i >= 0xFE00
         @memory[i]
       elsif i < 0x8000 or i >= 0xA000 && i < 0xC000
@@ -64,6 +68,9 @@ module Waterfoul
           # Writing any value to DIV resets the internal counter
           # This is handled by the Timer class
           $timer.reset_div if $timer
+        when 0xFF10..0xFF3F # APU registers and Wave RAM
+          $apu.write_register(i, v) if $apu
+          @memory[i] = v
         when 0x0...0x8000 # ROM Bank 0 + n
           @cartridge[i] = v
         when 0x8000...0xA000 # Video RAM

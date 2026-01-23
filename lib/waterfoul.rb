@@ -11,6 +11,8 @@ require "waterfoul/sdl"
 require "waterfoul/screen"
 require "waterfoul/ppu"
 require "waterfoul/cartridge"
+require "waterfoul/apu"
+require "waterfoul/audio_output"
 require "waterfoul/emulator"
 require "waterfoul/input"
 

@@ -12,13 +12,21 @@ module Waterfoul
       @cpu = SkipBoot.set_state(@cpu) if options.has_key?('skip_boot')
       @ppu = PPU.new
       @screen = Screen.new
+
+      # Initialize audio
+      @audio_output = AudioOutput.new
+      @audio_output.init
+      $apu = APU.new(@audio_output)
     end
 
     def run
       loop do
         @cpu.step
-        @ppu.step @cpu.m
+        cycles = @cpu.m
+        @ppu.step cycles
+        $apu.tick(cycles) if $apu
         @screen.render @ppu.framebuffer if @ppu.vblank?
+        $apu.queue_audio if $apu
       end
     end
   end

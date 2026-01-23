@@ -7,11 +7,16 @@ module Waterfoul
 
     INIT_TIMER = 0x01
     INIT_VIDEO = 0x20
+    INIT_AUDIO = 0x10
     INIT_KEYBOARD = 0x200
     WINDOW_RESIZABLE = 0x20
     PIXELFORMAT_ARGB8888 = 0x16362004
     SDL_WINDOW_RESIZABLE = 0x20
     SDL_WINDOWPOS_UNDEFINED = 0x1FFF0000
+
+    # Audio format constants
+    AUDIO_S16LSB = 0x8010
+    AUDIO_S16 = AUDIO_S16LSB
 
     # keyboard key maps
     SDL_SCANCODE_RETURN = 40 # start
@@ -39,5 +44,27 @@ module Waterfoul
     attach_function :SetHint, 'SDL_SetHint', [:string, :string], :int
     attach_function :RenderSetLogicalSize, 'SDL_RenderSetLogicalSize', [:pointer, :int, :int], :int
     attach_function :SetWindowTitle, 'SDL_SetWindowTitle', [:pointer, :string], :void
+
+    # Audio functions
+    attach_function :OpenAudioDevice, 'SDL_OpenAudioDevice', [:string, :int, :pointer, :pointer, :int], :uint32
+    attach_function :CloseAudioDevice, 'SDL_CloseAudioDevice', [:uint32], :void
+    attach_function :PauseAudioDevice, 'SDL_PauseAudioDevice', [:uint32, :int], :void
+    attach_function :QueueAudio, 'SDL_QueueAudio', [:uint32, :pointer, :uint32], :int
+    attach_function :GetQueuedAudioSize, 'SDL_GetQueuedAudioSize', [:uint32], :uint32
+    attach_function :ClearQueuedAudio, 'SDL_ClearQueuedAudio', [:uint32], :void
+    attach_function :GetError, 'SDL_GetError', [], :string
+
+    # SDL_AudioSpec structure
+    class AudioSpec < FFI::Struct
+      layout :freq, :int,
+             :format, :uint16,
+             :channels, :uint8,
+             :silence, :uint8,
+             :samples, :uint16,
+             :padding, :uint16,
+             :size, :uint32,
+             :callback, :pointer,
+             :userdata, :pointer
+    end
   end
 end
