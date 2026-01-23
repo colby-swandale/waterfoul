@@ -116,13 +116,22 @@ module Waterfoul
         generate_sample
       end
 
-      # Tick channels (use while loop to avoid block allocation)
+      # Cache enabled states to avoid repeated method calls
+      ch1_enabled = @channel1.enabled
+      ch2_enabled = @channel2.enabled
+      ch3_enabled = @channel3.enabled
+      ch4_enabled = @channel4.enabled
+
+      # Skip channel ticking entirely if all disabled
+      return unless ch1_enabled || ch2_enabled || ch3_enabled || ch4_enabled
+
+      # Only tick enabled channels (avoids method call + return overhead)
       i = 0
       while i < cycles
-        @channel1.tick
-        @channel2.tick
-        @channel3.tick
-        @channel4.tick
+        @channel1.tick if ch1_enabled
+        @channel2.tick if ch2_enabled
+        @channel3.tick if ch3_enabled
+        @channel4.tick if ch4_enabled
         i += 1
       end
     end

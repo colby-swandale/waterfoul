@@ -2,7 +2,8 @@ module Waterfoul
   class Input
     # Cache keyboard state, update every N cycles or once per frame
     # SDL.PumpEvents is expensive - called on every 0xFF00 read
-    POLL_INTERVAL = 1000  # Update every 1000 cycles
+    # 8192 cycles = ~8-9 polls/frame (still very responsive for 60Hz games)
+    POLL_INTERVAL = 8192
 
     SDL.InitSubSystem(SDL::INIT_KEYBOARD)
 
