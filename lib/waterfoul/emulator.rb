@@ -2,6 +2,10 @@ module Waterfoul
   # The Emulator is the abstraction of the emulator as a whole, it initializes
   # each component and performs the tick.
   class Emulator
+    # Game Boy runs at ~59.7 FPS, use 60 FPS for simplicity
+    TARGET_FPS = 60
+    FRAME_TIME = 1.0 / TARGET_FPS
+
     def initialize(rom_filename, options = {})
       # read the given file as binary and break it down into an array of bytes
       rom = File.binread(rom_filename).bytes
@@ -17,6 +21,9 @@ module Waterfoul
       @audio_output = AudioOutput.new
       @audio_output.init
       $apu = APU.new(@audio_output)
+
+      # Frame timing for 60 FPS cap
+      @last_frame_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     def run
@@ -26,10 +33,30 @@ module Waterfoul
         @ppu.step cycles
         $apu.tick(cycles) if $apu
         Input.tick(cycles)
-        @screen.render @ppu.framebuffer if @ppu.vblank?
+        if @ppu.vblank?
+          @screen.render @ppu.framebuffer
+          limit_frame_rate
+        end
         $apu.queue_audio if $apu
       end
     end
+
+    private
+
+    def limit_frame_rate
+      current_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      elapsed = current_time - @last_frame_time
+      sleep_time = FRAME_TIME - elapsed
+
+      if sleep_time > 0
+        sleep(sleep_time)
+        @last_frame_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      else
+        @last_frame_time = current_time
+      end
+    end
+
+    public
 
     # Run for a specific number of frames (useful for profiling)
     def run_frames(frame_count)
