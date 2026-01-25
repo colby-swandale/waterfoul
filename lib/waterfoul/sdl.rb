@@ -33,8 +33,8 @@ module Waterfoul
     SDL_SCANCODE_LEFT = 80
     SDL_SCANCODE_DOWN = 81
     SDL_SCANCODE_UP = 82
-    SDL_SCANCODE_A = 4 # A
-    SDL_SCANCODE_Z = 29 # B
+    SDL_SCANCODE_X = 27 # A button (right, like on Game Boy)
+    SDL_SCANCODE_Z = 29 # B button (left, like on Game Boy)
     SDL_SCANCODE_Q = 20
 
     attach_function :Init, 'SDL_Init', [:uint32], :int

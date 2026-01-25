@@ -39,8 +39,8 @@ module Waterfoul
         # Button keys (allow multiple simultaneous)
         input ^= 0x8 if keyboard_state[SDL::SDL_SCANCODE_RETURN] == 1
         input ^= 0x4 if keyboard_state[SDL::SDL_SCANCODE_RSHIFT] == 1
-        input ^= 0x1 if keyboard_state[SDL::SDL_SCANCODE_A] == 1
-        input ^= 0x2 if keyboard_state[SDL::SDL_SCANCODE_Z] == 1
+        input ^= 0x1 if keyboard_state[SDL::SDL_SCANCODE_X] == 1  # A button
+        input ^= 0x2 if keyboard_state[SDL::SDL_SCANCODE_Z] == 1  # B button
       elsif joyp & 0x10 == 0x0
         # D-pad keys (allow multiple simultaneous)
         input ^= 0x4 if keyboard_state[SDL::SDL_SCANCODE_UP] == 1
