@@ -551,8 +551,9 @@ describe Waterfoul::CPU do
   end
 
   describe '#and_hl' do
-    before { $mmu.write_byte 0x100, 0x51 }
+    before { $mmu.write_byte 0xC100, 0x51 }
     before { subject.set_register :a, 0x99 }
+    before { subject.set_register :hl, 0xC100 }
 
     it 'performs an AND on value from memory and A' do
       subject.and_hl

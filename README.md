@@ -9,7 +9,9 @@ To start the emulator:
 
 Make sure to `bundle install` first and install required libraries.
 
-By default the emulator will run the boot rom, if you wish to skip it then add `--skip-boot` as an option.
+For Game Boy Color games, add the `--gbc` flag:
+
+`bundle exec exe/waterfoul start <path to rom> --gbc`
 
 ## Try turning on the --jit and --enable-frozen-string-literal to get max fps
 `RUBYOPT="--enable-frozen-string-literal --jit --jit-max-cache=100000 --jit-min-calls=3" bundle exec exe/waterfoul start <path to rom>`

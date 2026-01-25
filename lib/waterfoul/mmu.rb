@@ -1,5 +1,3 @@
-require 'waterfoul/boot_rom'
-
 module Waterfoul
   # The MMU (Memory Management Unit) in a chip in the device that is the
   # interface to hardware for reading and writing to memory.
@@ -9,8 +7,6 @@ module Waterfoul
   # not having any IO instructions.
   class MMU
     MEMORY_SIZE = 65536 # bytes
-    # unmap boot rom register address
-    UNMAP_BOOT_ROM_MEM_LOC = 0xFF50
     # DMA register function address
     DMA_TRANSFER_MEM_LOC = 0xFF46
     # DIV register memory location
@@ -28,8 +24,7 @@ module Waterfoul
 
     def initialize(cartridge = Cartridge.empty, gbc_mode: false)
       @gbc_mode = gbc_mode
-      # map the boot rom when the device starts
-      @cartridge = BootROM.new(cartridge)
+      @cartridge = cartridge
       # storage for usable memory (zero filled)
       @memory = Array.new MEMORY_SIZE, 0
 
@@ -264,11 +259,6 @@ module Waterfoul
           end
         else
           @memory[i - 0x2000] = v
-        end
-      elsif i == UNMAP_BOOT_ROM_MEM_LOC
-        # Unmap boot ROM when 0xFF50 is written to
-        if v == 0x1 && @cartridge.is_a?(BootROM)
-          @cartridge = @cartridge.cartridge
         end
       elsif i == 0xFF00
         @memory[i] = v | 0xF

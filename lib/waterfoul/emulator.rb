@@ -17,7 +17,7 @@ module Waterfoul
 
       $mmu = MMU.new(@cartridge, gbc_mode: @gbc_mode)
       @cpu = CPU.new
-      @cpu = SkipBoot.set_state(@cpu, gbc_mode: @gbc_mode) if options.has_key?('skip_boot')
+      SkipBoot.set_state(@cpu, gbc_mode: @gbc_mode)
       @ppu = PPU.new(gbc_mode: @gbc_mode)
       @screen = Screen.new
 

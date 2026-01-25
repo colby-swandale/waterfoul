@@ -3,7 +3,6 @@ require "thor"
 module Waterfoul
   class CLI < Thor
     desc 'start ROM', 'start the emulator'
-    option :skip_boot
     option :gbc, type: :boolean, desc: 'Enable Game Boy Color mode'
     option :stackprof, type: :boolean, desc: 'Enable CPU profiling with stackprof'
     option :profile_frames, type: :numeric, desc: 'Stop after N frames (for profiling)'
