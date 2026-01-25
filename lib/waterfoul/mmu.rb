@@ -37,6 +37,12 @@ module Waterfoul
         @bg_cram_auto_inc = false
         @obj_cram_auto_inc = false
 
+        # Pre-computed ARGB8888 colors (8 palettes × 4 colors each)
+        # Updated when palette RAM is written
+        @bg_colors = Array.new(32, 0xFFFFFFFF)
+        @obj_colors = Array.new(32, 0xFFFFFFFF)
+        precompute_all_palette_colors
+
         # VRAM bank 1 (8KB) - bank 0 uses existing @memory
         @vram_bank = 0
         @vram_bank1 = Array.new(0x2000, 0)
@@ -45,6 +51,28 @@ module Waterfoul
         @wram_bank = 1
         @wram_banks = Array.new(7) { Array.new(0x1000, 0) }
       end
+    end
+
+    # Pre-compute all palette colors at once (used during init)
+    def precompute_all_palette_colors
+      8.times do |palette|
+        4.times do |color|
+          update_bg_color_cache(palette, color)
+          update_obj_color_cache(palette, color)
+        end
+      end
+    end
+
+    # Update a single cached BG color
+    def update_bg_color_cache(palette, color)
+      idx = (palette * 8) + (color * 2)
+      @bg_colors[(palette * 4) + color] = gbc_to_rgb(@bg_cram[idx], @bg_cram[idx + 1])
+    end
+
+    # Update a single cached OBJ color
+    def update_obj_color_cache(palette, color)
+      idx = (palette * 8) + (color * 2)
+      @obj_colors[(palette * 4) + color] = gbc_to_rgb(@obj_cram[idx], @obj_cram[idx + 1])
     end
 
     # Read 1 byte from memory given address
@@ -136,8 +164,7 @@ module Waterfoul
     # Returns: 32-bit ARGB color
     def bg_palette_color(palette, color)
       return 0xFF000000 unless @gbc_mode
-      idx = (palette * 8) + (color * 2)
-      gbc_to_rgb(@bg_cram[idx], @bg_cram[idx + 1])
+      @bg_colors[(palette << 2) + color]
     end
 
     # Get a color from the object palette
@@ -146,8 +173,7 @@ module Waterfoul
     # Returns: 32-bit ARGB color
     def obj_palette_color(palette, color)
       return 0xFF000000 unless @gbc_mode
-      idx = (palette * 8) + (color * 2)
-      gbc_to_rgb(@obj_cram[idx], @obj_cram[idx + 1])
+      @obj_colors[(palette << 2) + color]
     end
 
     # Get tile attributes from VRAM bank 1
@@ -293,7 +319,12 @@ module Waterfoul
         @memory[i] = v
       when BCPD_REG
         # BG palette data write
-        @bg_cram[@bg_cram_index & 0x3F] = v
+        cram_idx = @bg_cram_index & 0x3F
+        @bg_cram[cram_idx] = v
+        # Update cached color (each color is 2 bytes, so update when either byte changes)
+        palette = cram_idx >> 3        # cram_idx / 8
+        color = (cram_idx >> 1) & 0x03 # (cram_idx / 2) % 4
+        update_bg_color_cache(palette, color)
         if @bg_cram_auto_inc
           @bg_cram_index = (@bg_cram_index + 1) & 0x3F
         end
@@ -305,7 +336,12 @@ module Waterfoul
         @memory[i] = v
       when OCPD_REG
         # OBJ palette data write
-        @obj_cram[@obj_cram_index & 0x3F] = v
+        cram_idx = @obj_cram_index & 0x3F
+        @obj_cram[cram_idx] = v
+        # Update cached color
+        palette = cram_idx >> 3
+        color = (cram_idx >> 1) & 0x03
+        update_obj_color_cache(palette, color)
         if @obj_cram_auto_inc
           @obj_cram_index = (@obj_cram_index + 1) & 0x3F
         end

@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
-require "bundler/setup"
-require "waterfoul"
+require 'bundler/setup'
+require 'waterfoul'
 
 if defined? RubyVM::YJIT.enable
-  Rails.application.config.after_initialize do
-    RubyVM::YJIT.enable
-  end
+  RubyVM::YJIT.enable
 end
 
 Waterfoul::CLI.start ARGV

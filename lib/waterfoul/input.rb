@@ -19,10 +19,10 @@ module Waterfoul
     end
 
     def self.read_keyboard(joyp)
-      # Only poll SDL when interval elapsed
+      # Only update keyboard state when interval elapsed
+      # Note: SDL events are pumped by Screen#process_events once per frame
       if @cycles_since_poll >= POLL_INTERVAL
         @cycles_since_poll = 0
-        SDL.PumpEvents
         keyboard = SDL.GetKeyboardState(nil)
         @keyboard_state = keyboard.read_array_of_uint8(229)
       end
