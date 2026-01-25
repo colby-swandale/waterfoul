@@ -14,6 +14,11 @@ module Waterfoul
 
     # GBC-specific registers
     VBK_REG = 0xFF4F   # VRAM bank select
+    HDMA1_REG = 0xFF51 # HDMA source high
+    HDMA2_REG = 0xFF52 # HDMA source low
+    HDMA3_REG = 0xFF53 # HDMA destination high
+    HDMA4_REG = 0xFF54 # HDMA destination low
+    HDMA5_REG = 0xFF55 # HDMA length/mode/start
     BCPS_REG = 0xFF68  # Background palette index
     BCPD_REG = 0xFF69  # Background palette data
     OCPS_REG = 0xFF6A  # Object palette index
@@ -50,6 +55,12 @@ module Waterfoul
         # WRAM banks 1-7 (7 x 4KB) - bank 0 uses existing @memory
         @wram_bank = 1
         @wram_banks = Array.new(7) { Array.new(0x1000, 0) }
+
+        # HDMA (HBlank DMA) state
+        @hdma_source = 0
+        @hdma_dest = 0
+        @hdma_length = 0
+        @hdma_active = false  # HBlank DMA in progress
       end
     end
 
@@ -184,6 +195,11 @@ module Waterfoul
       @vram_bank1[map_addr - 0x8000]
     end
 
+    # Read a byte from VRAM bank 0 (for tile map indices in GBC mode)
+    def read_vram_bank0(addr)
+      @memory[addr]
+    end
+
     # Read a byte from VRAM bank 1 (for tile data)
     def read_vram_bank1(addr)
       return 0 unless @gbc_mode
@@ -212,6 +228,49 @@ module Waterfoul
     def write_word(addr, word)
       write_byte addr, ( word & 0xFF )
       write_byte addr + 1, ( word >> 8 )
+    end
+
+    # General purpose DMA - transfers all data immediately
+    def perform_gdma
+      return unless @gbc_mode
+
+      bytes_to_copy = @hdma_length * 16
+      bytes_to_copy.times do |i|
+        byte = read_byte(@hdma_source + i)
+        write_vram_for_hdma(@hdma_dest + i, byte)
+      end
+
+      @hdma_source += bytes_to_copy
+      @hdma_dest += bytes_to_copy
+      @hdma_length = 0
+    end
+
+    # HBlank DMA - transfers one 16-byte block, called by PPU during HBlank
+    def perform_hdma_block
+      return false unless @gbc_mode && @hdma_active
+
+      # Transfer 16 bytes
+      16.times do |i|
+        byte = read_byte(@hdma_source + i)
+        write_vram_for_hdma(@hdma_dest + i, byte)
+      end
+
+      @hdma_source += 16
+      @hdma_dest += 16
+      @hdma_length -= 1
+
+      if @hdma_length == 0
+        @hdma_active = false
+        @memory[HDMA5_REG] = 0xFF  # Indicate complete
+      else
+        @memory[HDMA5_REG] = (@hdma_length - 1) & 0x7F
+      end
+
+      true  # Return true if transfer happened
+    end
+
+    def hdma_active?
+      @hdma_active
     end
 
     private
@@ -252,6 +311,14 @@ module Waterfoul
       when VBK_REG
         # VRAM bank register: only bit 0 is used, upper bits read as 1
         @vram_bank | 0xFE
+      when HDMA5_REG
+        # HDMA5: bit 7 = 0 if HDMA active, 1 if inactive
+        # bits 0-6 = remaining length - 1 (or 0x7F if inactive)
+        if @hdma_active
+          (@hdma_length - 1) & 0x7F
+        else
+          0xFF  # Bit 7 set = inactive
+        end
       when BCPS_REG
         # BG palette index with auto-increment flag
         @bg_cram_index | (@bg_cram_auto_inc ? 0x80 : 0)
@@ -312,6 +379,40 @@ module Waterfoul
         # VRAM bank select (only bit 0 is used)
         @vram_bank = v & 0x01
         @memory[i] = v
+      when HDMA1_REG
+        # HDMA source high byte
+        @hdma_source = (@hdma_source & 0x00FF) | (v << 8)
+        @memory[i] = v
+      when HDMA2_REG
+        # HDMA source low byte (lower 4 bits ignored)
+        @hdma_source = (@hdma_source & 0xFF00) | (v & 0xF0)
+        @memory[i] = v
+      when HDMA3_REG
+        # HDMA destination high byte (only bits 0-4 used, always in VRAM 0x8000-0x9FF0)
+        @hdma_dest = 0x8000 | ((v & 0x1F) << 8)
+        @memory[i] = v
+      when HDMA4_REG
+        # HDMA destination low byte (lower 4 bits ignored)
+        @hdma_dest = (@hdma_dest & 0xFF00) | (v & 0xF0)
+        @memory[i] = v
+      when HDMA5_REG
+        # HDMA length/mode/start
+        if @hdma_active && (v & 0x80) == 0
+          # Writing 0 to bit 7 while HDMA active stops it
+          @hdma_active = false
+          @memory[i] = v | 0x80  # Set bit 7 to indicate inactive
+        else
+          @hdma_length = (v & 0x7F) + 1  # Length in 16-byte blocks
+          if (v & 0x80) == 0
+            # General purpose DMA (immediate transfer)
+            perform_gdma
+            @memory[i] = 0xFF  # Transfer complete
+          else
+            # HBlank DMA (transfer 16 bytes per HBlank)
+            @hdma_active = true
+            @memory[i] = v & 0x7F  # Store length, clear bit 7
+          end
+        end
       when BCPS_REG
         # BG palette index
         @bg_cram_index = v & 0x3F
@@ -363,6 +464,15 @@ module Waterfoul
           sprite_byte = $mmu.read_byte(addr + i)
           self[0xFE00 + i] = sprite_byte
         end
+      end
+    end
+
+    # Write to VRAM for HDMA (respects current VRAM bank)
+    def write_vram_for_hdma(addr, value)
+      if @vram_bank == 1
+        @vram_bank1[addr - 0x8000] = value
+      else
+        @memory[addr] = value
       end
     end
   end

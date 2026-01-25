@@ -132,6 +132,8 @@ module Waterfoul
       @modeclock -= VRAM_SCANLINE_TIME
       @mode = H_BLANK_STATE
       scanline
+      # Perform HDMA transfer during HBlank (GBC only)
+      $mmu.perform_hdma_block if @gbc_mode
       update_stat_mode
     end
 
@@ -187,13 +189,24 @@ module Waterfoul
       lcdc = $mmu.read_memory_byte(0xFF40)
 
       # Extract all LCDC flags locally
-      bg_enabled = (lcdc & 0x01) != 0
+      lcdc_bg_enable = (lcdc & 0x01) != 0
       obj_enabled = (lcdc & 0x02) != 0
       obj_size_16 = (lcdc & 0x04) != 0
       bg_tile_select = (lcdc & 0x10) != 0 ? 0x8000 : 0x8800
       bg_map_select = (lcdc & 0x08) != 0 ? 0x9C00 : 0x9800
       window_enabled = (lcdc & 0x20) != 0
       window_map_select = (lcdc & 0x40) != 0 ? 0x9C00 : 0x9800
+
+      # In GBC mode, LCDC bit 0 has different meaning:
+      # - DMG: bit 0 = 0 disables BG/window rendering entirely
+      # - GBC: bit 0 = 0 means BG/window still render but sprites always on top
+      if @gbc_mode
+        bg_enabled = true  # Always render BG in GBC mode
+        bg_priority_enabled = lcdc_bg_enable  # But priority only when bit 0 set
+      else
+        bg_enabled = lcdc_bg_enable
+        bg_priority_enabled = true  # N/A for DMG, always check priority
+      end
 
       # Cache scroll registers once per scanline
       scx = $mmu.read_memory_byte(0xFF43)
@@ -206,7 +219,7 @@ module Waterfoul
 
       render_bg(bg_enabled, bg_tile_select, bg_map_select, scx, scy, palette)
       render_window(window_enabled, bg_tile_select, window_map_select, wx, wy, palette)
-      render_sprites(obj_enabled, obj_size_16)
+      render_sprites(obj_enabled, obj_size_16, bg_priority_enabled)
     end
 
     def update_stat_mode
@@ -281,21 +294,33 @@ module Waterfoul
           masks = BIT_MASKS
         end
 
-        tile = 0
+        # In GBC mode, tile indices are always in VRAM bank 0
+        if @gbc_mode
+          raw_tile = $mmu.read_vram_bank0(map_address)
+        else
+          raw_tile = $mmu.read_byte(map_address)
+        end
+
         if tiles_select == 0x8800
-          tile = signed_value $mmu.read_byte(map_address)
+          tile = signed_value(raw_tile)
           tile += 128
         else
-          tile = $mmu.read_byte(map_address)
+          tile = raw_tile
         end
 
         line_pixel_offset = x << 3           # x * 8
         tile_select_offset = tile << 4       # tile * 16
         tile_address = tiles_select + tile_select_offset + tile_line_offset
 
-        if @gbc_mode && vram_bank == 1
-          byte_1 = $mmu.read_vram_bank1(tile_address)
-          byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+        if @gbc_mode
+          # Read tile data from the bank specified in tile attributes
+          if vram_bank == 1
+            byte_1 = $mmu.read_vram_bank1(tile_address)
+            byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+          else
+            byte_1 = $mmu.read_vram_bank0(tile_address)
+            byte_2 = $mmu.read_vram_bank0(tile_address + 1)
+          end
         else
           byte_1 = $mmu.read_byte(tile_address)
           byte_2 = $mmu.read_byte(tile_address + 1)
@@ -329,7 +354,7 @@ module Waterfoul
       @window_line += 1
     end
 
-    def render_sprites(obj_enabled, obj_size_16)
+    def render_sprites(obj_enabled, obj_size_16, bg_priority_enabled = true)
       return unless obj_enabled
 
       line = current_line
@@ -402,9 +427,15 @@ module Waterfoul
 
           tile_address = tiles + sprite_tile_offset + pixel_y_2 + offset
 
-          if @gbc_mode && vram_bank == 1
-            byte_1 = $mmu.read_vram_bank1(tile_address)
-            byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+          if @gbc_mode
+            # Read sprite tile data from the bank specified in sprite flags
+            if vram_bank == 1
+              byte_1 = $mmu.read_vram_bank1(tile_address)
+              byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+            else
+              byte_1 = $mmu.read_vram_bank0(tile_address)
+              byte_2 = $mmu.read_vram_bank0(tile_address + 1)
+            end
           else
             byte_1 = $mmu.read_byte(tile_address)
             byte_2 = $mmu.read_byte(tile_address + 1)
@@ -427,14 +458,17 @@ module Waterfoul
                 position = line_width + buffer_x
 
                 # Check sprite priority
-                # In GBC mode, also check BG priority flag from tile attributes
+                # In GBC mode with LCDC bit 0 = 0, sprites always appear on top
                 show_sprite = true
-                if bg_priority && @bg_color_indices[position] != 0
-                  show_sprite = false
-                elsif @gbc_mode && @bg_priority_flags[position] && @bg_color_indices[position] != 0
-                  # BG tile has priority flag set and color is not 0
-                  show_sprite = false
+                if bg_priority_enabled
+                  if bg_priority && @bg_color_indices[position] != 0
+                    show_sprite = false
+                  elsif @gbc_mode && @bg_priority_flags[position] && @bg_color_indices[position] != 0
+                    # BG tile has priority flag set and color is not 0
+                    show_sprite = false
+                  end
                 end
+                # When bg_priority_enabled is false, show_sprite stays true (sprites on top)
 
                 if show_sprite
                   if @gbc_mode
@@ -517,18 +551,31 @@ module Waterfoul
               tile_line_offset = tile_y << 1
             end
 
+            # In GBC mode, tile indices are always in VRAM bank 0
+            if @gbc_mode
+              raw_tile = $mmu.read_vram_bank0(map_address)
+            else
+              raw_tile = $mmu.read_byte(map_address)
+            end
+
             if tiles_select == 0x8800
-              tile = signed_value $mmu.read_byte(map_address)
+              tile = signed_value(raw_tile)
               tile += 128
             else
-              tile = $mmu.read_byte(map_address)
+              tile = raw_tile
             end
 
             tile_address = tiles_select + (tile << 4) + tile_line_offset
 
-            if @gbc_mode && vram_bank == 1
-              byte_1 = $mmu.read_vram_bank1(tile_address)
-              byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+            if @gbc_mode
+              # Read tile data from the bank specified in tile attributes
+              if vram_bank == 1
+                byte_1 = $mmu.read_vram_bank1(tile_address)
+                byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+              else
+                byte_1 = $mmu.read_vram_bank0(tile_address)
+                byte_2 = $mmu.read_vram_bank0(tile_address + 1)
+              end
             else
               byte_1 = $mmu.read_byte(tile_address)
               byte_2 = $mmu.read_byte(tile_address + 1)
