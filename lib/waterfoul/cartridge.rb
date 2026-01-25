@@ -2,7 +2,6 @@ require 'waterfoul/mbc/rom'
 require 'waterfoul/mbc/mbc1'
 require 'waterfoul/mbc/mbc2'
 require 'waterfoul/mbc/mbc3'
-require 'waterfoul/mbc/mbc4'
 require 'waterfoul/mbc/mbc5'
 require 'forwardable'
 
@@ -30,7 +29,14 @@ module Waterfoul
 
     # initialize the memory bank controller given the game program and the controller type
     def self.cartrdige_controller type, rom
-      controller_const(type).new rom
+      case type
+      when 0x0F, 0x10  # MBC3 with RTC
+        MBC::MBC3.new(rom, has_rtc: true)
+      when 0x1C, 0x1D, 0x1E  # MBC5 with rumble
+        MBC::MBC5.new(rom, has_rumble: true)
+      else
+        controller_const(type).new rom
+      end
     end
 
     # return the class constant that implements the behavior of the memory bank controller
@@ -45,10 +51,10 @@ module Waterfoul
         MBC::MBC2
       when 0xF, 0x10, 0x11, 0x12, 0x13
         MBC::MBC3
-      when 0x15, 0x16, 0x17
-        MBC::MBC4
-      when 0x19, 0x1B, 0x1C, 0x1D, 0x1E
+      when 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E
         MBC::MBC5
+      else
+        raise CartridgeError, "Unsupported cartridge type: 0x#{type_byte.to_s(16).upcase}"
       end
     end
 

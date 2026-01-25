@@ -6,4 +6,6 @@ module Waterfoul
   class InstructionNotImplemented < EmulatorError; end
   # raised if an `xx` instruction is called anytime
   class InvalidInstruction < EmulatorError; end
+  # raised if unsupported cartridge type
+  class CartridgeError < EmulatorError; end
 end
