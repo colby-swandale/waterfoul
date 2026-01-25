@@ -11,10 +11,14 @@ module Waterfoul
       rom = File.binread(rom_filename).bytes
       # initialize emulated CPU, GPU & Scren components
       @cartridge = Cartridge.new rom
-      $mmu = MMU.new(@cartridge)
+
+      # Detect GBC mode: CLI flag must be set AND cartridge must be GBC compatible
+      @gbc_mode = options.has_key?('gbc') && Cartridge.gbc_compatible?(rom)
+
+      $mmu = MMU.new(@cartridge, gbc_mode: @gbc_mode)
       @cpu = CPU.new
-      @cpu = SkipBoot.set_state(@cpu) if options.has_key?('skip_boot')
-      @ppu = PPU.new
+      @cpu = SkipBoot.set_state(@cpu, gbc_mode: @gbc_mode) if options.has_key?('skip_boot')
+      @ppu = PPU.new(gbc_mode: @gbc_mode)
       @screen = Screen.new
 
       # Initialize audio

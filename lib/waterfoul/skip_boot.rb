@@ -3,10 +3,12 @@ module Waterfoul
   # program has finished executing. This lets us run the game without
   # needing to execute the boot rom every time the emulator is started.
   class SkipBoot
-    def self.set_state(cpu)
+    def self.set_state(cpu, gbc_mode: false)
       # set cpu register state
       cpu.set_register :pc, 0x100
-      cpu.set_register :af, 0x1B0
+      # In GBC mode, A = 0x11 to indicate GBC hardware
+      # In DMG mode, A = 0x01
+      cpu.set_register :af, gbc_mode ? 0x11B0 : 0x1B0
       cpu.set_register :bc, 0x13
       cpu.set_register :de, 0xD8
       cpu.set_register :hl, 0x14D

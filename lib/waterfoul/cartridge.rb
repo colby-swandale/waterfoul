@@ -17,12 +17,22 @@ module Waterfoul
   class Cartridge
     # location byte in memory (physically located on cartrdige) that declares the type of cartrdige
     CARTRIDGE_TYPE_MEM_LOC = 0x147
+    # GBC flag location in cartridge header
+    GBC_FLAG_MEM_LOC = 0x143
 
     def self.new(rom)
       # get cartridge type byte from game program
       cartridge_type = rom[CARTRIDGE_TYPE_MEM_LOC]
       # return memory bank controller to cartridge
       cartrdige_controller cartridge_type, rom
+    end
+
+    # Check if the ROM is GBC compatible
+    # 0x80 = GBC compatible (works on both DMG and GBC)
+    # 0xC0 = GBC only
+    def self.gbc_compatible?(rom)
+      flag = rom[GBC_FLAG_MEM_LOC]
+      flag == 0x80 || flag == 0xC0
     end
 
     private

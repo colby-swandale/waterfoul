@@ -7,6 +7,19 @@ describe Waterfoul::PPU do
   # enable screen for all specs
   before { $mmu.write_byte 0xFF40, 0x80 }
 
+  describe 'GBC mode' do
+    before { $mmu = Waterfoul::MMU.new(Waterfoul::Cartridge.empty, gbc_mode: true) }
+    subject { Waterfoul::PPU.new(gbc_mode: true) }
+    before { $mmu.write_byte 0xFF40, 0x80 }
+
+    describe '#initialize' do
+      it 'allocates bg_priority_flags array' do
+        expect(subject.instance_variable_get(:@bg_priority_flags)).not_to be_nil
+        expect(subject.instance_variable_get(:@bg_priority_flags).size).to eq(160 * 144)
+      end
+    end
+  end
+
   describe '#initialize' do
     it 'initializes an empty framebuffer' do
       expect(subject.framebuffer).to_not be_nil

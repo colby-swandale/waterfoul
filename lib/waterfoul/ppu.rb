@@ -31,10 +31,13 @@ module Waterfoul
     # Pre-computed RGB values (avoid case statement per pixel)
     RGB_COLORS = [0xFFFFFFFF, 0xFFA8A8A8, 0xFF555555, 0x00000000].freeze
 
-    def initialize
+    def initialize(gbc_mode: false)
+      @gbc_mode = gbc_mode
       @framebuffer = Array.new FRAMEBUFFER_SIZE, 0
       # Store raw color indices (0-3) for BG priority checking
       @bg_color_indices = Array.new FRAMEBUFFER_SIZE, 0
+      # Store BG priority flags for GBC mode (bit 7 of tile attributes)
+      @bg_priority_flags = Array.new(FRAMEBUFFER_SIZE, false) if @gbc_mode
       @mode = V_BLANK_STATE
       @modeclock = 0
       @vblank_line = 0
@@ -240,48 +243,82 @@ module Waterfoul
       # don't render if the window is outside the bounds of the screen
       return if window_pos_x > 159 || window_pos_y > 143 || window_pos_y > line
 
-      # Pre-compute palette lookup table
-      palette_colors = [
-        RGB_COLORS[palette & 0x3],
-        RGB_COLORS[(palette >> 2) & 0x3],
-        RGB_COLORS[(palette >> 4) & 0x3],
-        RGB_COLORS[(palette >> 6) & 0x3]
-      ]
+      # Pre-compute palette lookup table for DMG mode
+      unless @gbc_mode
+        palette_colors = [
+          RGB_COLORS[palette & 0x3],
+          RGB_COLORS[(palette >> 2) & 0x3],
+          RGB_COLORS[(palette >> 4) & 0x3],
+          RGB_COLORS[(palette >> 6) & 0x3]
+        ]
+      end
 
       line_adjusted = @window_line
       y_offset = (line_adjusted >> 3) << 5   # (line_adjusted / 8) * 32
       tile_line = line_adjusted & 0x07       # line_adjusted % 8
-      tile_line_offset = tile_line << 1      # tile_line * 2
 
       x = 0
       while x < 32
+        map_address = map_select + y_offset + x
+
+        if @gbc_mode
+          # Read tile attributes from VRAM bank 1
+          attr = $mmu.tile_attribute(map_address)
+          gbc_palette = attr & 0x07
+          vram_bank = (attr & 0x08) != 0 ? 1 : 0
+          x_flip = (attr & 0x20) != 0
+          y_flip = (attr & 0x40) != 0
+          gbc_priority = (attr & 0x80) != 0
+
+          # Apply Y flip to tile line
+          effective_tile_line = y_flip ? (7 - tile_line) : tile_line
+          tile_line_offset = effective_tile_line << 1
+
+          # Select mask array based on x flip
+          masks = x_flip ? BIT_MASKS_REVERSED : BIT_MASKS
+        else
+          tile_line_offset = tile_line << 1
+          masks = BIT_MASKS
+        end
+
         tile = 0
         if tiles_select == 0x8800
-          tile = signed_value $mmu.read_byte(map_select + y_offset + x)
+          tile = signed_value $mmu.read_byte(map_address)
           tile += 128
         else
-          tile = $mmu.read_byte map_select + y_offset + x
+          tile = $mmu.read_byte(map_address)
         end
 
         line_pixel_offset = x << 3           # x * 8
         tile_select_offset = tile << 4       # tile * 16
         tile_address = tiles_select + tile_select_offset + tile_line_offset
 
-        byte_1 = $mmu.read_byte tile_address
-        byte_2 = $mmu.read_byte (tile_address + 1)
+        if @gbc_mode && vram_bank == 1
+          byte_1 = $mmu.read_vram_bank1(tile_address)
+          byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+        else
+          byte_1 = $mmu.read_byte(tile_address)
+          byte_2 = $mmu.read_byte(tile_address + 1)
+        end
 
         pixelx = 0
         while pixelx < 8
           buffer_addr = line_pixel_offset + pixelx + window_pos_x
 
           if buffer_addr >= 0 && buffer_addr < Screen::SCREEN_WIDTH
-            # Use pre-computed bit mask
-            mask = BIT_MASKS[pixelx]
+            # Use pre-computed bit mask (may be reversed for x-flip)
+            mask = masks[pixelx]
             pixel = ((byte_1 & mask) != 0 ? 1 : 0) | ((byte_2 & mask) != 0 ? 2 : 0)
 
             position = line_width + buffer_addr
             @bg_color_indices[position] = pixel  # Store raw index for sprite priority
-            @framebuffer[position] = palette_colors[pixel]
+
+            if @gbc_mode
+              @bg_priority_flags[position] = gbc_priority
+              @framebuffer[position] = $mmu.bg_palette_color(gbc_palette, pixel)
+            else
+              @framebuffer[position] = palette_colors[pixel]
+            end
           end
 
           pixelx += 1
@@ -303,19 +340,23 @@ module Waterfoul
       return if visible_sprites.empty?
 
       sprite_size = obj_size_16 ? 16 : 8
-      obp0 = $mmu.read_memory_byte 0xFF48
-      obp1 = $mmu.read_memory_byte 0xFF49
 
-      # Update pre-allocated palette arrays (avoids array allocation each scanline)
-      @obp0_colors[0] = RGB_COLORS[obp0 & 0x3]
-      @obp0_colors[1] = RGB_COLORS[(obp0 >> 2) & 0x3]
-      @obp0_colors[2] = RGB_COLORS[(obp0 >> 4) & 0x3]
-      @obp0_colors[3] = RGB_COLORS[(obp0 >> 6) & 0x3]
+      # DMG mode: pre-compute palette colors
+      unless @gbc_mode
+        obp0 = $mmu.read_memory_byte 0xFF48
+        obp1 = $mmu.read_memory_byte 0xFF49
 
-      @obp1_colors[0] = RGB_COLORS[obp1 & 0x3]
-      @obp1_colors[1] = RGB_COLORS[(obp1 >> 2) & 0x3]
-      @obp1_colors[2] = RGB_COLORS[(obp1 >> 4) & 0x3]
-      @obp1_colors[3] = RGB_COLORS[(obp1 >> 6) & 0x3]
+        # Update pre-allocated palette arrays (avoids array allocation each scanline)
+        @obp0_colors[0] = RGB_COLORS[obp0 & 0x3]
+        @obp0_colors[1] = RGB_COLORS[(obp0 >> 2) & 0x3]
+        @obp0_colors[2] = RGB_COLORS[(obp0 >> 4) & 0x3]
+        @obp0_colors[3] = RGB_COLORS[(obp0 >> 6) & 0x3]
+
+        @obp1_colors[0] = RGB_COLORS[obp1 & 0x3]
+        @obp1_colors[1] = RGB_COLORS[(obp1 >> 2) & 0x3]
+        @obp1_colors[2] = RGB_COLORS[(obp1 >> 4) & 0x3]
+        @obp1_colors[3] = RGB_COLORS[(obp1 >> 6) & 0x3]
+      end
 
       sprite_mask = obj_size_16 ? 0xFE : 0xFF
       tiles = 0x8000
@@ -336,9 +377,17 @@ module Waterfoul
           x_flip = (sprite_flags & 0x20) != 0
           y_flip = (sprite_flags & 0x40) != 0
           bg_priority = (sprite_flags & 0x80) != 0  # If set, sprite behind BG colors 1-3
-          use_obp1 = (sprite_flags & 0x10) != 0     # Palette select
 
-          palette_colors = use_obp1 ? @obp1_colors : @obp0_colors
+          if @gbc_mode
+            # GBC: palette from bits 0-2, VRAM bank from bit 3
+            gbc_palette = sprite_flags & 0x07
+            vram_bank = (sprite_flags & 0x08) != 0 ? 1 : 0
+          else
+            # DMG: palette select from bit 4
+            use_obp1 = (sprite_flags & 0x10) != 0
+            palette_colors = use_obp1 ? @obp1_colors : @obp0_colors
+          end
+
           pixel_y = y_flip ? (obj_size_16 ? 15 : 7) - (line - sprite_y) : line - sprite_y
 
           pixel_y_2 = 0
@@ -353,8 +402,13 @@ module Waterfoul
 
           tile_address = tiles + sprite_tile_offset + pixel_y_2 + offset
 
-          byte_1 = $mmu.read_byte tile_address
-          byte_2 = $mmu.read_byte (tile_address + 1)
+          if @gbc_mode && vram_bank == 1
+            byte_1 = $mmu.read_vram_bank1(tile_address)
+            byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+          else
+            byte_1 = $mmu.read_byte(tile_address)
+            byte_2 = $mmu.read_byte(tile_address + 1)
+          end
 
           # Select mask array based on flip (eliminates conditional per pixel)
           masks = x_flip ? BIT_MASKS_REVERSED : BIT_MASKS
@@ -372,9 +426,22 @@ module Waterfoul
               if buffer_x >= 0 && buffer_x < Screen::SCREEN_WIDTH
                 position = line_width + buffer_x
 
-                # BG priority: if set, sprite only shows over BG color 0
-                unless bg_priority && @bg_color_indices[position] != 0
-                  @framebuffer[position] = palette_colors[pixel]
+                # Check sprite priority
+                # In GBC mode, also check BG priority flag from tile attributes
+                show_sprite = true
+                if bg_priority && @bg_color_indices[position] != 0
+                  show_sprite = false
+                elsif @gbc_mode && @bg_priority_flags[position] && @bg_color_indices[position] != 0
+                  # BG tile has priority flag set and color is not 0
+                  show_sprite = false
+                end
+
+                if show_sprite
+                  if @gbc_mode
+                    @framebuffer[position] = $mmu.obj_palette_color(gbc_palette, pixel)
+                  else
+                    @framebuffer[position] = palette_colors[pixel]
+                  end
                 end
               end
             end
@@ -392,24 +459,30 @@ module Waterfoul
       line_width = line * Screen::SCREEN_WIDTH
 
       if bg_enabled
-        # Pre-compute palette lookup table (4 entries)
-        palette_colors = [
-          RGB_COLORS[palette & 0x3],
-          RGB_COLORS[(palette >> 2) & 0x3],
-          RGB_COLORS[(palette >> 4) & 0x3],
-          RGB_COLORS[(palette >> 6) & 0x3]
-        ]
+        # Pre-compute palette lookup table for DMG mode (4 entries)
+        unless @gbc_mode
+          palette_colors = [
+            RGB_COLORS[palette & 0x3],
+            RGB_COLORS[(palette >> 2) & 0x3],
+            RGB_COLORS[(palette >> 4) & 0x3],
+            RGB_COLORS[(palette >> 6) & 0x3]
+          ]
+        end
 
         # Calculate the Y position in the 256x256 background map
         bg_y = (line + scy) & 0xFF
         tile_row = bg_y >> 3         # Faster than / 8
         tile_y = bg_y & 0x07         # Faster than % 8
-        tile_line_offset = tile_y << 1  # Faster than * 2
 
         # Cache for tile data (avoid re-reading same tile)
         cached_tile_col = -1
         byte_1 = 0
         byte_2 = 0
+        # GBC-specific cached values
+        gbc_palette = 0
+        gbc_x_flip = false
+        gbc_priority = false
+        masks = BIT_MASKS
 
         # Replace .times with while loop for better performance
         screen_x = 0
@@ -423,26 +496,58 @@ module Waterfoul
           if tile_col != cached_tile_col
             cached_tile_col = tile_col
             map_offset = (tile_row << 5) + tile_col  # tile_row * 32
+            map_address = map_select + map_offset
+
+            if @gbc_mode
+              # Read tile attributes from VRAM bank 1
+              attr = $mmu.tile_attribute(map_address)
+              gbc_palette = attr & 0x07
+              vram_bank = (attr & 0x08) != 0 ? 1 : 0
+              gbc_x_flip = (attr & 0x20) != 0
+              y_flip = (attr & 0x40) != 0
+              gbc_priority = (attr & 0x80) != 0
+
+              # Apply Y flip to tile line
+              effective_tile_y = y_flip ? (7 - tile_y) : tile_y
+              tile_line_offset = effective_tile_y << 1
+
+              # Select mask array based on x flip
+              masks = gbc_x_flip ? BIT_MASKS_REVERSED : BIT_MASKS
+            else
+              tile_line_offset = tile_y << 1
+            end
 
             if tiles_select == 0x8800
-              tile = signed_value $mmu.read_byte(map_select + map_offset)
+              tile = signed_value $mmu.read_byte(map_address)
               tile += 128
             else
-              tile = $mmu.read_byte(map_select + map_offset)
+              tile = $mmu.read_byte(map_address)
             end
 
             tile_address = tiles_select + (tile << 4) + tile_line_offset
-            byte_1 = $mmu.read_byte tile_address
-            byte_2 = $mmu.read_byte(tile_address + 1)
+
+            if @gbc_mode && vram_bank == 1
+              byte_1 = $mmu.read_vram_bank1(tile_address)
+              byte_2 = $mmu.read_vram_bank1(tile_address + 1)
+            else
+              byte_1 = $mmu.read_byte(tile_address)
+              byte_2 = $mmu.read_byte(tile_address + 1)
+            end
           end
 
-          # Use pre-computed bit mask
-          mask = BIT_MASKS[tile_x]
+          # Use pre-computed bit mask (may be reversed for x-flip)
+          mask = masks[tile_x]
           pixel = ((byte_1 & mask) != 0 ? 1 : 0) | ((byte_2 & mask) != 0 ? 2 : 0)
 
           position = line_width + screen_x
           @bg_color_indices[position] = pixel  # Store raw index for sprite priority
-          @framebuffer[position] = palette_colors[pixel]
+
+          if @gbc_mode
+            @bg_priority_flags[position] = gbc_priority
+            @framebuffer[position] = $mmu.bg_palette_color(gbc_palette, pixel)
+          else
+            @framebuffer[position] = palette_colors[pixel]
+          end
 
           screen_x += 1
         end
@@ -452,7 +557,8 @@ module Waterfoul
         while i < 160
           position = line_width + i
           @bg_color_indices[position] = 0
-          @framebuffer[position] = 0
+          @bg_priority_flags[position] = false if @gbc_mode
+          @framebuffer[position] = @gbc_mode ? 0xFFFFFFFF : 0
           i += 1
         end
       end
