@@ -18,6 +18,14 @@ module Waterfoul
     AUDIO_S16LSB = 0x8010
     AUDIO_S16 = AUDIO_S16LSB
 
+    # Event types
+    SDL_QUIT = 0x100
+    SDL_KEYDOWN = 0x300
+
+    # Keyboard modifiers
+    KMOD_CTRL = 0x00C0   # Left or right Ctrl
+    KMOD_GUI = 0x0400    # Cmd on macOS (left or right)
+
     # keyboard key maps
     SDL_SCANCODE_RETURN = 40 # start
     SDL_SCANCODE_RSHIFT = 229 # select
@@ -27,6 +35,7 @@ module Waterfoul
     SDL_SCANCODE_UP = 82
     SDL_SCANCODE_A = 4 # A
     SDL_SCANCODE_Z = 29 # B
+    SDL_SCANCODE_Q = 20
 
     attach_function :Init, 'SDL_Init', [:uint32], :int
     attach_function :InitSubSystem, 'SDL_InitSubSystem', [ :uint32 ], :int
@@ -40,7 +49,9 @@ module Waterfoul
     attach_function :RenderCopy, 'SDL_RenderCopy', [:pointer, :pointer, :pointer, :pointer], :int
     attach_function :RenderPresent, 'SDL_RenderPresent', [:pointer], :int
     attach_function :PumpEvents, 'SDL_PumpEvents', [], :void
+    attach_function :PollEvent, 'SDL_PollEvent', [:pointer], :int
     attach_function :GetKeyboardState, 'SDL_GetKeyboardState', [:pointer], :pointer
+    attach_function :GetModState, 'SDL_GetModState', [], :uint16
     attach_function :SetHint, 'SDL_SetHint', [:string, :string], :int
     attach_function :RenderSetLogicalSize, 'SDL_RenderSetLogicalSize', [:pointer, :int, :int], :int
     attach_function :SetWindowTitle, 'SDL_SetWindowTitle', [:pointer, :string], :void

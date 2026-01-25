@@ -31,6 +31,9 @@ module Waterfoul
     end
 
     def run
+      # Handle Ctrl+C gracefully
+      trap('INT') { exit(0) }
+
       loop do
         @cpu.step
         cycles = @cpu.m
